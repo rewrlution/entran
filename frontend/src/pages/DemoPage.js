@@ -56,6 +56,9 @@ function DemoPage() {
   const [copiedText, setCopiedText] = useState(null);
   const [showProgram, setShowProgram] = useState(false);
   const [currentExecutingLine, setCurrentExecutingLine] = useState(-1);
+  const [programVariables, setProgramVariables] = useState({});
+  const [executedStatements, setExecutedStatements] = useState(0);
+  const [memoryUsed, setMemoryUsed] = useState(0);
 
   const sampleMarkdown = `- test networking connectivity by pinging google
 - check the dns resolution works properly  
@@ -138,6 +141,8 @@ also make sure to check if the server is actually reachable and responding.`;
         return {
           programText: "// No program generated yet",
           stepToLineMap: [],
+          variables: [],
+          statements: [],
         };
       }
 
@@ -145,13 +150,51 @@ also make sure to check if the server is actually reachable and responding.`;
       let programText = "";
       let lineNumber = 0;
       const stepToLineMap = [];
+      const variables = [];
+      const statements = [];
 
       if (!Array.isArray(program.procedures)) {
         return {
           programText: "// Invalid program structure",
           stepToLineMap: [],
+          variables: [],
+          statements: [],
         };
       }
+
+      // Add variables section
+      programText += "// === VARIABLES ===\n";
+      lineNumber++;
+
+      // Extract domain/target variables from procedures
+      const domains = new Set();
+      program.procedures.forEach((proc) => {
+        if (proc.steps && Array.isArray(proc.steps)) {
+          proc.steps.forEach((step) => {
+            if (step.command && step.command.includes("google")) {
+              domains.add("google.com");
+            }
+            if (
+              step.command &&
+              (step.command.includes("curl") || step.command.includes("http"))
+            ) {
+              domains.add("https://google.com");
+            }
+          });
+        }
+      });
+
+      domains.forEach((domain, index) => {
+        const varName = domain.includes("http")
+          ? "target_url"
+          : "target_domain";
+        programText += `var ${varName} = "${domain}"\n`;
+        variables.push({ name: varName, value: domain, type: "string" });
+        lineNumber++;
+      });
+
+      programText += "\n// === PROCEDURES ===\n";
+      lineNumber++;
 
       program.procedures.forEach((proc, procIndex) => {
         if (!proc || typeof proc.name !== "string") {
@@ -170,11 +213,21 @@ also make sure to check if the server is actually reachable and responding.`;
             stepToLineMap.push(lineNumber);
 
             if (step.type === "command" && step.command) {
-              programText += `${step.command}\n`;
+              programText += `stmt: ${step.command}\n`;
+              statements.push({
+                type: "command",
+                content: step.command,
+                lineNumber: lineNumber,
+              });
             } else {
-              programText += `// ${
+              programText += `stmt: // ${
                 step.description || step.action || "Unknown step"
               }\n`;
+              statements.push({
+                type: "comment",
+                content: step.description || step.action || "Unknown step",
+                lineNumber: lineNumber,
+              });
             }
             lineNumber++;
           });
@@ -186,12 +239,14 @@ also make sure to check if the server is actually reachable and responding.`;
         }
       });
 
-      return { programText, stepToLineMap };
+      return { programText, stepToLineMap, variables, statements };
     } catch (error) {
       console.error("Error generating program display:", error);
       return {
         programText: "// Error generating program display",
         stepToLineMap: [],
+        variables: [],
+        statements: [],
       };
     }
   };
@@ -296,10 +351,30 @@ also make sure to check if the server is actually reachable and responding.`;
           timestamp: new Date().toLocaleTimeString(),
         };
 
-        // Update the current executing line
+        // Update the current executing line and get program info
         try {
-          const { stepToLineMap } = generateProgramDisplay();
+          const { stepToLineMap, variables, statements } =
+            generateProgramDisplay();
+
+          // Move to next line
           setCurrentExecutingLine(stepToLineMap[executionStep] || -1);
+
+          // Update variables when first step is executed
+          if (executionStep === 0 && variables.length > 0) {
+            const varsObj = {};
+            variables.forEach((v) => {
+              varsObj[v.name] = v.value;
+            });
+            setProgramVariables(varsObj);
+          }
+
+          // Update executed statements count (use statements array length as total)
+          setExecutedStatements(executionStep + 1);
+
+          // Calculate memory usage (rough estimate: ~4 tokens per word)
+          const programText = generateProgramDisplay().programText;
+          const tokenCount = Math.ceil(programText.split(/\s+/).length * 1.3); // Approximate token count
+          setMemoryUsed(tokenCount);
         } catch (error) {
           console.error("Error updating execution line:", error);
           setCurrentExecutingLine(-1);
@@ -332,6 +407,9 @@ also make sure to check if the server is actually reachable and responding.`;
     setExpandedStages({});
     setShowProgram(false);
     setCurrentExecutingLine(-1);
+    setProgramVariables({});
+    setExecutedStatements(0);
+    setMemoryUsed(0);
   };
 
   const toggleStageExpansion = (stageId) => {
@@ -483,6 +561,54 @@ also make sure to check if the server is actually reachable and responding.`;
                   0
                 ) || 0}
               </span>
+            </div>
+
+            {/* Program State Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              {/* Variables Section */}
+              <div className="bg-white rounded p-2">
+                <h4 className="font-semibold text-gray-700 mb-1 text-xs">
+                  Variables:
+                </h4>
+                {Object.keys(programVariables).length === 0 ? (
+                  <p className="text-xs text-gray-500">
+                    No variables initialized
+                  </p>
+                ) : (
+                  <div className="space-y-1">
+                    {Object.entries(programVariables).map(([name, value]) => (
+                      <div key={name} className="text-xs">
+                        <span className="font-mono text-purple-600">
+                          {name}
+                        </span>
+                        <span className="text-gray-600"> = </span>
+                        <span className="text-green-600">"{value}"</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Memory Section */}
+              <div className="bg-white rounded p-2">
+                <h4 className="font-semibold text-gray-700 mb-1 text-xs">
+                  Memory:
+                </h4>
+                <div className="space-y-1 text-xs">
+                  <div>
+                    <span className="text-gray-600">Statements executed: </span>
+                    <span className="font-mono text-blue-600">
+                      {executedStatements}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Tokens consumed: </span>
+                    <span className="font-mono text-orange-600">
+                      {memoryUsed}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="bg-white rounded p-2 max-h-32 overflow-y-auto">
