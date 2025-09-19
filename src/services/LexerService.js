@@ -348,6 +348,7 @@ class LexerService {
       "requirements",
       "prerequisites",
       "implementation",
+      "references",
     ];
 
     const sectionName = procedure.text.toLowerCase();

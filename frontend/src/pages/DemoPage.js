@@ -60,14 +60,15 @@ function DemoPage() {
   const [executedStatements, setExecutedStatements] = useState(0);
   const [memoryUsed, setMemoryUsed] = useState(0);
 
-  const sampleMarkdown = `- test networking connectivity by pinging google
+  const sampleMarkdown = `# Network issue troubleshooting guide
+
+## Instructions
+- test networking connectivity by pinging [google](https://google.com)
 - check the dns resolution works properly  
-- also verify http response times
-- [terminologies](https://en.wikipedia.org/wiki/Network_troubleshooting)
+- verify http response: you should be able to see the ping is within 100ms, and http returns 200 status and dns resolves to valid IP address.
 
-and you should be able to see the ping is within 100ms, and http returns 200 status and dns resolves to valid IP address.
-
-also make sure to check if the server is actually reachable and responding.`;
+## References:
+- [terminologies](https://en.wikipedia.org/wiki/Network_troubleshooting)`;
 
   const stages = [
     {

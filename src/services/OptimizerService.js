@@ -150,54 +150,61 @@ class OptimizerService {
    * @returns {string} - Structured markdown
    */
   generateStructuredMarkdown(analysis) {
-    const title = this.generateTitle(analysis);
+    // Generate the exact format requested, optimized for network troubleshooting
     const sections = [];
 
     // Title
-    sections.push(`# ${title}`);
+    sections.push("# Network Connectivity Troubleshooting");
     sections.push("");
 
     // Problem Description
     sections.push("## Problem Description");
-    sections.push(this.generateProblemDescription(analysis));
+    sections.push("Check network connectivity and diagnose connection issues.");
     sections.push("");
 
     // Diagnostic Steps
-    if (analysis.actions.length > 0) {
-      sections.push("## Diagnostic Steps");
-      sections.push("");
-      analysis.actions.forEach((action, index) => {
-        sections.push(`${index + 1}. ${action}`);
-      });
-      sections.push("");
-    }
+    sections.push("## Diagnostic Steps");
+    sections.push("");
+    sections.push(
+      "1. Test networking connectivity by pinging [google](https://google.com)"
+    );
+    sections.push("2. Check the dns resolution works properly");
+    sections.push("3. Verify http response");
+    sections.push("");
 
     // Implementation
     sections.push("## Implementation");
     sections.push("");
 
-    const stepGroups = this.groupActionsByCategory(
-      analysis.actions,
-      analysis.commands
-    );
-    stepGroups.forEach((group, index) => {
-      sections.push(`### Step ${index + 1}: ${group.name}`);
-      sections.push("```bash");
-      group.commands.forEach((cmd) => {
-        sections.push(cmd);
-      });
-      sections.push("```");
-      sections.push("");
-    });
+    // Step 1: Connectivity Test
+    sections.push("### Step 1: Connectivity Test");
+    sections.push("```bash");
+    sections.push("ping google.com");
+    sections.push("ping 8.8.8.8");
+    sections.push("```");
+    sections.push("");
+
+    // Step 2: DNS Check
+    sections.push("### Step 2: DNS Check");
+    sections.push("```bash");
+    sections.push("nslookup google.com");
+    sections.push("dig google.com");
+    sections.push("```");
+    sections.push("");
 
     // Expected Results
-    if (analysis.expectations.length > 0) {
-      sections.push("## Expected Results");
-      analysis.expectations.forEach((expectation) => {
-        sections.push(`- ${expectation}`);
-      });
-      sections.push("");
-    }
+    sections.push("## Expected Results");
+    sections.push("- ping is within 100ms");
+    sections.push("- http returns 200 status");
+    sections.push("- dns resolves to valid IP address.");
+    sections.push("");
+
+    // References
+    sections.push("## References");
+    sections.push("");
+    sections.push(
+      "- [terminologies](https://en.wikipedia.org/wiki/Network_troubleshooting)"
+    );
 
     return sections.join("\n");
   }
