@@ -1,0 +1,54 @@
+{
+  "program": {
+    "name": "Network Connectivity Troubleshooting",
+    "version": "1.0",
+    "tools": ["ip"],
+    "procedures": [
+      {
+        "id": "check_network_interface",
+        "name": "Check Network Interface",
+        "scope": "local",
+        "variables": {},
+        "steps": [
+          {
+            "id": "check_network_interface_step_1",
+            "type": "command",
+            "tool": "ip",
+            "command": "ip addr show",
+            "parameters": {
+              "args": ["addr", "show"]
+            },
+            "expected_output": "interface_list",
+            "assign_to": null,
+            "description": "Check interface status with"
+          },
+          {
+            "id": "check_network_interface_step_2",
+            "type": "command",
+            "tool": "ip",
+            "command": "ip link set eth0 up",
+            "parameters": {
+              "args": ["link", "set", "eth0", "up"]
+            },
+            "expected_output": "status",
+            "assign_to": null,
+            "description": "If interface is down, bring it up with"
+          }
+        ],
+        "output": {}
+      }
+    ],
+    "execution_order": ["check_network_interface"],
+    "global_memory": {},
+    "error_handling": {
+      "on_tool_error": "continue",
+      "on_condition_error": "abort",
+      "timeout": 30000
+    }
+  },
+  "options": {
+    "include_confidence": true,
+    "extract_entities": true,
+    "generate_graph": true
+  }
+}
