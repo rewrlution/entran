@@ -21,7 +21,7 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-github";
 
 // Disable workers to prevent loading errors
-ace.config.set('useWorker', false);
+ace.config.set("useWorker", false);
 
 // Add CSS for execution highlighting
 const executionLineStyle = `
@@ -32,7 +32,7 @@ const executionLineStyle = `
 `;
 
 // Insert styles into document head
-if (typeof document !== 'undefined') {
+if (typeof document !== "undefined") {
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
   styleSheet.innerText = executionLineStyle;
@@ -135,53 +135,64 @@ also make sure to check if the server is actually reachable and responding.`;
   const generateProgramDisplay = () => {
     try {
       if (!stageResults.transpile?.program?.procedures) {
-        return { programText: "// No program generated yet", stepToLineMap: [] };
+        return {
+          programText: "// No program generated yet",
+          stepToLineMap: [],
+        };
       }
-      
+
       const program = stageResults.transpile.program;
       let programText = "";
       let lineNumber = 0;
       const stepToLineMap = [];
-      
+
       if (!Array.isArray(program.procedures)) {
-        return { programText: "// Invalid program structure", stepToLineMap: [] };
+        return {
+          programText: "// Invalid program structure",
+          stepToLineMap: [],
+        };
       }
-      
+
       program.procedures.forEach((proc, procIndex) => {
-        if (!proc || typeof proc.name !== 'string') {
+        if (!proc || typeof proc.name !== "string") {
           programText += `// Invalid procedure ${procIndex}\n`;
           lineNumber++;
           return;
         }
-        
+
         programText += `// Procedure: ${proc.name}\n`;
         lineNumber++;
-        
+
         if (proc.steps && Array.isArray(proc.steps) && proc.steps.length > 0) {
           proc.steps.forEach((step) => {
             if (!step) return;
-            
+
             stepToLineMap.push(lineNumber);
-            
-            if (step.type === 'command' && step.command) {
+
+            if (step.type === "command" && step.command) {
               programText += `${step.command}\n`;
             } else {
-              programText += `// ${step.description || step.action || 'Unknown step'}\n`;
+              programText += `// ${
+                step.description || step.action || "Unknown step"
+              }\n`;
             }
             lineNumber++;
           });
         }
-        
+
         if (procIndex < program.procedures.length - 1) {
           programText += "\n";
           lineNumber++;
         }
       });
-      
+
       return { programText, stepToLineMap };
     } catch (error) {
       console.error("Error generating program display:", error);
-      return { programText: "// Error generating program display", stepToLineMap: [] };
+      return {
+        programText: "// Error generating program display",
+        stepToLineMap: [],
+      };
     }
   };
 
@@ -235,9 +246,9 @@ also make sure to check if the server is actually reachable and responding.`;
 
       setCurrentStage(stageIndex + 1);
       setExpandedStages((prev) => ({ ...prev, [stage.id]: true }));
-      
+
       // Switch to program view after transpile stage completes
-      if (stage.id === 'transpile') {
+      if (stage.id === "transpile") {
         setShowProgram(true);
       }
     } catch (error) {
@@ -266,7 +277,7 @@ also make sure to check if the server is actually reachable and responding.`;
             proc.steps.forEach((step) => {
               if (step) {
                 allSteps.push({
-                  procedure: proc.name || 'Unknown',
+                  procedure: proc.name || "Unknown",
                   ...step,
                 });
               }
@@ -280,8 +291,8 @@ also make sure to check if the server is actually reachable and responding.`;
         const logEntry = {
           step: executionStep + 1,
           procedure: step.procedure,
-          command: step.command || step.description || 'Unknown command',
-          type: step.type || 'unknown',
+          command: step.command || step.description || "Unknown command",
+          type: step.type || "unknown",
           timestamp: new Date().toLocaleTimeString(),
         };
 
@@ -293,10 +304,10 @@ also make sure to check if the server is actually reachable and responding.`;
           console.error("Error updating execution line:", error);
           setCurrentExecutingLine(-1);
         }
-        
+
         setExecutionLog((prev) => [...prev, logEntry]);
         setExecutionStep((prev) => prev + 1);
-        
+
         // Switch to program view when execution starts
         if (executionStep === 0) {
           setShowProgram(true);
@@ -539,16 +550,16 @@ also make sure to check if the server is actually reachable and responding.`;
           <div className="bg-gray-100 px-4 py-2 border-b">
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-gray-900">
-                {showProgram ? 'Generated Program' : 'Markdown Input'}
+                {showProgram ? "Generated Program" : "Markdown Input"}
               </h3>
               {stageResults.transpile && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowProgram(false)}
                     className={`px-3 py-1 text-sm rounded ${
-                      !showProgram 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      !showProgram
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                   >
                     Markdown
@@ -556,9 +567,9 @@ also make sure to check if the server is actually reachable and responding.`;
                   <button
                     onClick={() => setShowProgram(true)}
                     className={`px-3 py-1 text-sm rounded ${
-                      showProgram 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      showProgram
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                   >
                     Program
@@ -588,14 +599,20 @@ also make sure to check if the server is actually reachable and responding.`;
                 showPrintMargin={false}
                 showGutter={true}
                 highlightActiveLine={currentExecutingLine !== -1}
-                markers={currentExecutingLine >= 0 ? [{
-                  startRow: currentExecutingLine,
-                  startCol: 0,
-                  endRow: currentExecutingLine,
-                  endCol: 1,
-                  className: 'ace_active-line-execution',
-                  type: 'fullLine'
-                }] : []}
+                markers={
+                  currentExecutingLine >= 0
+                    ? [
+                        {
+                          startRow: currentExecutingLine,
+                          startCol: 0,
+                          endRow: currentExecutingLine,
+                          endCol: 1,
+                          className: "ace_active-line-execution",
+                          type: "fullLine",
+                        },
+                      ]
+                    : []
+                }
                 setOptions={{
                   enableBasicAutocompletion: false,
                   enableLiveAutocompletion: false,
