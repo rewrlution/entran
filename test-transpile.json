@@ -1,0 +1,51 @@
+{
+  "ast": {
+    "type": "document",
+    "children": [
+      {
+        "type": "heading",
+        "level": 1,
+        "text": "Network Connectivity Troubleshooting"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Check Network Interface",
+        "children": [
+          {
+            "type": "list",
+            "ordered": true,
+            "items": [
+              { "text": "Check interface status with `ip addr show`" },
+              {
+                "text": "If interface is down, bring it up with `ip link set eth0 up`"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Test DNS Resolution",
+        "children": [
+          {
+            "type": "list",
+            "ordered": true,
+            "items": [
+              { "text": "Perform DNS lookup with `nslookup google.com`" },
+              {
+                "text": "**If DNS fails:** Check DNS configuration in /etc/resolv.conf"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "options": {
+    "optimize": true,
+    "include_metadata": true,
+    "tool_validation": true
+  }
+}
