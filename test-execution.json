@@ -1,0 +1,64 @@
+{
+  "program": {
+    "name": "Network Connectivity Troubleshooting",
+    "version": "1.0",
+    "tools": ["ip"],
+    "procedures": [
+      {
+        "id": "check_network_interface",
+        "name": "Check Network Interface",
+        "scope": "local",
+        "variables": {},
+        "steps": [
+          {
+            "id": "check_network_interface_step_1",
+            "type": "command",
+            "tool": "ip",
+            "command": "ip addr show",
+            "parameters": {
+              "args": ["addr", "show"]
+            },
+            "expected_output": "interface_list",
+            "assign_to": "interface_info",
+            "description": "Check interface status"
+          },
+          {
+            "id": "check_network_interface_step_2",
+            "type": "analysis",
+            "input": ["interface_info"],
+            "extract": ["interface_name"],
+            "description": "Analyze interface information"
+          }
+        ],
+        "output": {}
+      }
+    ],
+    "execution_order": ["check_network_interface"],
+    "global_memory": {},
+    "error_handling": {
+      "on_tool_error": "continue",
+      "on_condition_error": "abort",
+      "timeout": 30000
+    }
+  },
+  "analysis": {
+    "program_intent": "network_troubleshooting",
+    "confidence": 0.8,
+    "procedures": [
+      {
+        "id": "check_network_interface",
+        "estimated_duration": 5
+      }
+    ],
+    "risk_assessment": {
+      "overall_risk": "low"
+    }
+  },
+  "options": {
+    "debug_mode": true,
+    "timeout": 30000,
+    "memory_limit": 10485760,
+    "auto_continue": false,
+    "risk_level": "medium"
+  }
+}
