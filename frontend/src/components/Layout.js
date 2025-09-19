@@ -1,20 +1,22 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  Code2,
-  FileText,
-  Layers,
-  Play,
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  Code2, 
+  FileText, 
+  Layers, 
+  Play, 
   Home,
   Github,
   Settings,
-} from "lucide-react";
+  Zap
+} from 'lucide-react';
 
 function Layout({ children }) {
   const location = useLocation();
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: Home },
+    { name: "Demo", href: "/demo", icon: Zap },
     { name: "Document Editor", href: "/editor", icon: FileText },
     { name: "Stage Viewer", href: "/stages", icon: Layers },
     { name: "Execution Monitor", href: "/execution", icon: Play },
