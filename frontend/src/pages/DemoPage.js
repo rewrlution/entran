@@ -13,10 +13,31 @@ import {
 } from "lucide-react";
 import AceEditor from "react-ace";
 import axios from "axios";
+import ace from "ace-builds/src-noconflict/ace";
 
 // Import ace modes and themes
 import "ace-builds/src-noconflict/mode-markdown";
+import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-github";
+
+// Disable workers to prevent loading errors
+ace.config.set('useWorker', false);
+
+// Add CSS for execution highlighting
+const executionLineStyle = `
+  .ace_active-line-execution {
+    background-color: #fef3c7 !important;
+    border: 2px solid #f59e0b !important;
+  }
+`;
+
+// Insert styles into document head
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = executionLineStyle;
+  document.head.appendChild(styleSheet);
+}
 
 function DemoPage() {
   const [markdown, setMarkdown] = useState("");
@@ -33,6 +54,8 @@ function DemoPage() {
   const [executionLog, setExecutionLog] = useState([]);
   const [expandedStages, setExpandedStages] = useState({});
   const [copiedText, setCopiedText] = useState(null);
+  const [showProgram, setShowProgram] = useState(false);
+  const [currentExecutingLine, setCurrentExecutingLine] = useState(-1);
 
   const sampleMarkdown = `- test networking connectivity by pinging google
 - check the dns resolution works properly  
@@ -109,6 +132,59 @@ also make sure to check if the server is actually reachable and responding.`;
     }
   };
 
+  const generateProgramDisplay = () => {
+    try {
+      if (!stageResults.transpile?.program?.procedures) {
+        return { programText: "// No program generated yet", stepToLineMap: [] };
+      }
+      
+      const program = stageResults.transpile.program;
+      let programText = "";
+      let lineNumber = 0;
+      const stepToLineMap = [];
+      
+      if (!Array.isArray(program.procedures)) {
+        return { programText: "// Invalid program structure", stepToLineMap: [] };
+      }
+      
+      program.procedures.forEach((proc, procIndex) => {
+        if (!proc || typeof proc.name !== 'string') {
+          programText += `// Invalid procedure ${procIndex}\n`;
+          lineNumber++;
+          return;
+        }
+        
+        programText += `// Procedure: ${proc.name}\n`;
+        lineNumber++;
+        
+        if (proc.steps && Array.isArray(proc.steps) && proc.steps.length > 0) {
+          proc.steps.forEach((step) => {
+            if (!step) return;
+            
+            stepToLineMap.push(lineNumber);
+            
+            if (step.type === 'command' && step.command) {
+              programText += `${step.command}\n`;
+            } else {
+              programText += `// ${step.description || step.action || 'Unknown step'}\n`;
+            }
+            lineNumber++;
+          });
+        }
+        
+        if (procIndex < program.procedures.length - 1) {
+          programText += "\n";
+          lineNumber++;
+        }
+      });
+      
+      return { programText, stepToLineMap };
+    } catch (error) {
+      console.error("Error generating program display:", error);
+      return { programText: "// Error generating program display", stepToLineMap: [] };
+    }
+  };
+
   const handleRunStage = async (stageIndex) => {
     const stage = stages[stageIndex];
     setIsProcessing(true);
@@ -159,6 +235,11 @@ also make sure to check if the server is actually reachable and responding.`;
 
       setCurrentStage(stageIndex + 1);
       setExpandedStages((prev) => ({ ...prev, [stage.id]: true }));
+      
+      // Switch to program view after transpile stage completes
+      if (stage.id === 'transpile') {
+        setShowProgram(true);
+      }
     } catch (error) {
       console.error(`Stage ${stage.name} failed:`, error);
       alert(
@@ -172,33 +253,57 @@ also make sure to check if the server is actually reachable and responding.`;
   };
 
   const handleExecuteStep = () => {
-    if (!stageResults.transpile?.program?.procedures) return;
+    try {
+      if (!stageResults.transpile?.program?.procedures) return;
 
-    const program = stageResults.transpile.program;
-    const allSteps = [];
+      const program = stageResults.transpile.program;
+      const allSteps = [];
 
-    // Flatten all steps from all procedures
-    program.procedures.forEach((proc) => {
-      proc.steps?.forEach((step) => {
-        allSteps.push({
-          procedure: proc.name,
-          ...step,
+      // Flatten all steps from all procedures
+      if (Array.isArray(program.procedures)) {
+        program.procedures.forEach((proc) => {
+          if (proc && Array.isArray(proc.steps)) {
+            proc.steps.forEach((step) => {
+              if (step) {
+                allSteps.push({
+                  procedure: proc.name || 'Unknown',
+                  ...step,
+                });
+              }
+            });
+          }
         });
-      });
-    });
+      }
 
-    if (executionStep < allSteps.length) {
-      const step = allSteps[executionStep];
-      const logEntry = {
-        step: executionStep + 1,
-        procedure: step.procedure,
-        command: step.command || step.description,
-        type: step.type,
-        timestamp: new Date().toLocaleTimeString(),
-      };
+      if (executionStep < allSteps.length) {
+        const step = allSteps[executionStep];
+        const logEntry = {
+          step: executionStep + 1,
+          procedure: step.procedure,
+          command: step.command || step.description || 'Unknown command',
+          type: step.type || 'unknown',
+          timestamp: new Date().toLocaleTimeString(),
+        };
 
-      setExecutionLog((prev) => [...prev, logEntry]);
-      setExecutionStep((prev) => prev + 1);
+        // Update the current executing line
+        try {
+          const { stepToLineMap } = generateProgramDisplay();
+          setCurrentExecutingLine(stepToLineMap[executionStep] || -1);
+        } catch (error) {
+          console.error("Error updating execution line:", error);
+          setCurrentExecutingLine(-1);
+        }
+        
+        setExecutionLog((prev) => [...prev, logEntry]);
+        setExecutionStep((prev) => prev + 1);
+        
+        // Switch to program view when execution starts
+        if (executionStep === 0) {
+          setShowProgram(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error in handleExecuteStep:", error);
     }
   };
 
@@ -214,6 +319,8 @@ also make sure to check if the server is actually reachable and responding.`;
     setExecutionStep(0);
     setExecutionLog([]);
     setExpandedStages({});
+    setShowProgram(false);
+    setCurrentExecutingLine(-1);
   };
 
   const toggleStageExpansion = (stageId) => {
@@ -430,30 +537,99 @@ also make sure to check if the server is actually reachable and responding.`;
         {/* Left Panel - Editor */}
         <div className="w-1/2 border-r border-gray-200 flex flex-col">
           <div className="bg-gray-100 px-4 py-2 border-b">
-            <h3 className="font-medium text-gray-900">Markdown Input</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-gray-900">
+                {showProgram ? 'Generated Program' : 'Markdown Input'}
+              </h3>
+              {stageResults.transpile && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowProgram(false)}
+                    className={`px-3 py-1 text-sm rounded ${
+                      !showProgram 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Markdown
+                  </button>
+                  <button
+                    onClick={() => setShowProgram(true)}
+                    className={`px-3 py-1 text-sm rounded ${
+                      showProgram 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Program
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex-1 p-4">
-            <AceEditor
-              mode="markdown"
-              theme="github"
-              value={markdown}
-              onChange={setMarkdown}
-              name="markdown-editor"
-              width="100%"
-              height="100%"
-              fontSize={14}
-              showPrintMargin={false}
-              showGutter={true}
-              highlightActiveLine={true}
-              setOptions={{
-                enableBasicAutocompletion: true,
-                enableLiveAutocompletion: false,
-                enableSnippets: true,
-                showLineNumbers: true,
-                tabSize: 2,
-                wrap: true,
-              }}
-              placeholder="Enter your troubleshooting markdown here...
+            {showProgram && stageResults.transpile ? (
+              <AceEditor
+                mode="javascript"
+                theme="github"
+                value={(() => {
+                  try {
+                    return generateProgramDisplay().programText;
+                  } catch (error) {
+                    console.error("Error getting program text:", error);
+                    return "// Error displaying program";
+                  }
+                })()}
+                readOnly={true}
+                name="program-viewer"
+                width="100%"
+                height="100%"
+                fontSize={14}
+                showPrintMargin={false}
+                showGutter={true}
+                highlightActiveLine={currentExecutingLine !== -1}
+                markers={currentExecutingLine >= 0 ? [{
+                  startRow: currentExecutingLine,
+                  startCol: 0,
+                  endRow: currentExecutingLine,
+                  endCol: 1,
+                  className: 'ace_active-line-execution',
+                  type: 'fullLine'
+                }] : []}
+                setOptions={{
+                  enableBasicAutocompletion: false,
+                  enableLiveAutocompletion: false,
+                  enableSnippets: false,
+                  showLineNumbers: true,
+                  tabSize: 2,
+                  wrap: true,
+                  readOnly: true,
+                  useWorker: false,
+                }}
+              />
+            ) : (
+              <AceEditor
+                mode="markdown"
+                theme="github"
+                value={markdown}
+                onChange={setMarkdown}
+                name="markdown-editor"
+                width="100%"
+                height="100%"
+                fontSize={14}
+                showPrintMargin={false}
+                showGutter={true}
+                highlightActiveLine={true}
+                setOptions={{
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: false,
+                  enableSnippets: true,
+                  showLineNumbers: true,
+                  tabSize: 2,
+                  wrap: true,
+                  useWorker: false,
+                }}
+                placeholder="Enter your troubleshooting markdown here...
 
 # Title
 ## Problem Description  
@@ -465,14 +641,15 @@ also make sure to check if the server is actually reachable and responding.`;
 ```bash
 command here
 ```"
-            />
+              />
+            )}
           </div>
         </div>
 
         {/* Right Panel - Pipeline Stages */}
         <div className="w-1/2 flex flex-col">
           <div className="bg-gray-100 px-4 py-2 border-b">
-            <h3 className="font-medium text-gray-900">4-Stage Pipeline</h3>
+            <h3 className="font-medium text-gray-900">5-Stage Pipeline</h3>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {stages.map((stage, index) => {
