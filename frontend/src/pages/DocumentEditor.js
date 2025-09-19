@@ -105,22 +105,19 @@ sudo iptables -L
       // Stage 1: Lexical Analysis
       setProcessingStage("Lexical Analysis");
       const lexerResponse = await axios.post("/api/lexer/parse", {
-        content: document,
-        filename: fileName || "document.md",
+        markdown: document,
       });
 
       // Stage 2: Transpilation
       setProcessingStage("Transpilation");
       const transpilerResponse = await axios.post("/api/transpiler/transpile", {
         ast: lexerResponse.data.ast,
-        metadata: lexerResponse.data.metadata,
       });
 
       // Stage 3: Semantic Analysis
       setProcessingStage("Semantic Analysis");
       const analyzerResponse = await axios.post("/api/analyzer/analyze", {
         program: transpilerResponse.data.program,
-        metadata: transpilerResponse.data.metadata,
       });
 
       setResults({

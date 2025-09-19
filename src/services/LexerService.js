@@ -337,17 +337,38 @@ class LexerService {
    * @param {Array} errors - Errors array to append to
    */
   validateProcedureStructure(procedure, errors) {
-    const hasSteps = procedure.children.some(
-      (child) => child.type === "list" && child.ordered
+    // Allow certain descriptive sections to not have numbered steps
+    const descriptiveSections = [
+      "problem description",
+      "background",
+      "overview",
+      "expected results",
+      "conclusion",
+      "summary",
+      "requirements",
+      "prerequisites",
+      "implementation",
+    ];
+
+    const sectionName = procedure.text.toLowerCase();
+    const isDescriptiveSection = descriptiveSections.some((desc) =>
+      sectionName.includes(desc)
     );
 
-    if (!hasSteps) {
-      errors.push({
-        line: procedure.line,
-        type: "procedure_error",
-        message: `Procedure "${procedure.text}" should contain numbered steps`,
-        suggestion: "Add numbered lists to define procedure steps",
-      });
+    // Only require numbered steps for non-descriptive sections
+    if (!isDescriptiveSection) {
+      const hasSteps = procedure.children.some(
+        (child) => child.type === "list" && child.ordered
+      );
+
+      if (!hasSteps) {
+        errors.push({
+          line: procedure.line,
+          type: "procedure_error",
+          message: `Procedure "${procedure.text}" should contain numbered steps`,
+          suggestion: "Add numbered lists to define procedure steps",
+        });
+      }
     }
   }
 
