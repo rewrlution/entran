@@ -63,6 +63,7 @@ function DemoPage() {
   const sampleMarkdown = `- test networking connectivity by pinging google
 - check the dns resolution works properly  
 - also verify http response times
+- [terminologies](https://en.wikipedia.org/wiki/Network_troubleshooting)
 
 and you should be able to see the ping is within 100ms, and http returns 200 status and dns resolves to valid IP address.
 
@@ -166,8 +167,23 @@ also make sure to check if the server is actually reachable and responding.`;
       programText += "// === VARIABLES ===\n";
       lineNumber++;
 
-      // Extract domain/target variables from procedures
+      // Extract domain/target variables from procedures and markdown
       const domains = new Set();
+      const references = new Set();
+
+      // Check if we have access to the original markdown for reference links
+      const originalMarkdown =
+        stageResults.optimize?.originalText ||
+        stageResults.compile?.markdown ||
+        "";
+
+      // Extract reference links from markdown
+      const referenceRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      let match;
+      while ((match = referenceRegex.exec(originalMarkdown)) !== null) {
+        references.add({ name: match[1], url: match[2] });
+      }
+
       program.procedures.forEach((proc) => {
         if (proc.steps && Array.isArray(proc.steps)) {
           proc.steps.forEach((step) => {
@@ -182,6 +198,13 @@ also make sure to check if the server is actually reachable and responding.`;
             }
           });
         }
+      });
+
+      // Add reference variables
+      references.forEach((ref) => {
+        programText += `var ${ref.name} = "${ref.url}"\n`;
+        variables.push({ name: ref.name, value: ref.url, type: "reference" });
+        lineNumber++;
       });
 
       domains.forEach((domain, index) => {
@@ -239,7 +262,13 @@ also make sure to check if the server is actually reachable and responding.`;
         }
       });
 
-      return { programText, stepToLineMap, variables, statements };
+      return {
+        programText,
+        stepToLineMap,
+        variables,
+        statements,
+        programLines: programText.split("\n"),
+      };
     } catch (error) {
       console.error("Error generating program display:", error);
       return {
@@ -247,6 +276,7 @@ also make sure to check if the server is actually reachable and responding.`;
         stepToLineMap: [],
         variables: [],
         statements: [],
+        programLines: ["// Error generating program display"],
       };
     }
   };
@@ -356,8 +386,9 @@ also make sure to check if the server is actually reachable and responding.`;
           const { stepToLineMap, variables, statements } =
             generateProgramDisplay();
 
-          // Move to next line
-          setCurrentExecutingLine(stepToLineMap[executionStep] || -1);
+          // Move to next line that will be executed (highlight the line about to execute)
+          const nextLineIndex = executionStep; // This is the line about to execute
+          setCurrentExecutingLine(stepToLineMap[nextLineIndex] || -1);
 
           // Update variables when first step is executed
           if (executionStep === 0 && variables.length > 0) {
@@ -371,10 +402,21 @@ also make sure to check if the server is actually reachable and responding.`;
           // Update executed statements count (use statements array length as total)
           setExecutedStatements(executionStep + 1);
 
-          // Calculate memory usage (rough estimate: ~4 tokens per word)
-          const programText = generateProgramDisplay().programText;
-          const tokenCount = Math.ceil(programText.split(/\s+/).length * 1.3); // Approximate token count
-          setMemoryUsed(tokenCount);
+          // Calculate progressive memory usage (tokens from executed lines only)
+          const { programLines } = generateProgramDisplay();
+          const currentLine = stepToLineMap[executionStep] || 0;
+
+          // Calculate tokens only from lines executed so far
+          let executedTokens = 0;
+          for (let i = 0; i <= currentLine && i < programLines.length; i++) {
+            const line = programLines[i] || "";
+            const lineTokens = Math.ceil(
+              line.split(/\s+/).filter((word) => word.length > 0).length * 1.3
+            );
+            executedTokens += lineTokens;
+          }
+
+          setMemoryUsed(executedTokens);
         } catch (error) {
           console.error("Error updating execution line:", error);
           setCurrentExecutingLine(-1);
