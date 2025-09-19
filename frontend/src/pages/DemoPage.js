@@ -8,6 +8,8 @@ import {
   ChevronRight,
   StepForward,
   RotateCcw,
+  Copy,
+  Check,
 } from "lucide-react";
 import AceEditor from "react-ace";
 import axios from "axios";
@@ -30,6 +32,7 @@ function DemoPage() {
   const [executionStep, setExecutionStep] = useState(0);
   const [executionLog, setExecutionLog] = useState([]);
   const [expandedStages, setExpandedStages] = useState({});
+  const [copiedText, setCopiedText] = useState(null);
 
   const sampleMarkdown = `- test networking connectivity by pinging google
 - check the dns resolution works properly  
@@ -54,7 +57,7 @@ also make sure to check if the server is actually reachable and responding.`;
       description: "Parse markdown into AST",
       icon: FileText,
       color: "blue",
-      endpoint: "http://localhost:3001/api/lexer/compile",
+      endpoint: "http://localhost:3001/api/lexer/parse",
     },
     {
       id: "transpile",
@@ -94,6 +97,16 @@ also make sure to check if the server is actually reachable and responding.`;
     setCurrentStage(0);
     setExecutionStep(0);
     setExecutionLog([]);
+  };
+
+  const handleCopyText = async (text, identifier) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(identifier);
+      setTimeout(() => setCopiedText(null), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
   };
 
   const handleRunStage = async (stageIndex) => {
@@ -236,9 +249,30 @@ also make sure to check if the server is actually reachable and responding.`;
                   </pre>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-1">
-                    Optimized Output:
-                  </h4>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-gray-700">
+                      Optimized Output:
+                    </h4>
+                    <button
+                      onClick={() =>
+                        handleCopyText(result.optimizedText, "optimized")
+                      }
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
+                      title="Copy optimized text"
+                    >
+                      {copiedText === "optimized" ? (
+                        <>
+                          <Check size={12} />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <pre className="text-xs bg-white p-2 rounded overflow-auto max-h-32 border">
                     {result.optimizedText || "N/A"}
                   </pre>
