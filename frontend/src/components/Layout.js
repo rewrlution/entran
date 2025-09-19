@@ -1,23 +1,23 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Code2, 
-  FileText, 
-  Layers, 
-  Play, 
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Code2,
+  FileText,
+  Layers,
+  Play,
   Home,
   Github,
-  Settings
-} from 'lucide-react';
+  Settings,
+} from "lucide-react";
 
 function Layout({ children }) {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Document Editor', href: '/editor', icon: FileText },
-    { name: 'Stage Viewer', href: '/stages', icon: Layers },
-    { name: 'Execution Monitor', href: '/execution', icon: Play },
+    { name: "Dashboard", href: "/", icon: Home },
+    { name: "Document Editor", href: "/editor", icon: FileText },
+    { name: "Stage Viewer", href: "/stages", icon: Layers },
+    { name: "Execution Monitor", href: "/execution", icon: Play },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -33,7 +33,9 @@ function Layout({ children }) {
               <Code2 className="h-8 w-8 text-primary-600 mr-2" />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">ENTRAN</h1>
-                <p className="text-xs text-gray-500">English as Programming Language</p>
+                <p className="text-xs text-gray-500">
+                  English as Programming Language
+                </p>
               </div>
             </div>
 
@@ -63,17 +65,22 @@ function Layout({ children }) {
                     to={item.href}
                     className={`
                       group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
-                      ${isActive(item.href) 
-                        ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-500' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ${
+                        isActive(item.href)
+                          ? "bg-primary-100 text-primary-700 border-r-2 border-primary-500"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       }
                     `}
                   >
-                    <Icon 
+                    <Icon
                       className={`
                         mr-3 h-5 w-5 transition-colors
-                        ${isActive(item.href) ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'}
-                      `} 
+                        ${
+                          isActive(item.href)
+                            ? "text-primary-500"
+                            : "text-gray-400 group-hover:text-gray-500"
+                        }
+                      `}
                     />
                     {item.name}
                   </Link>
@@ -83,23 +90,30 @@ function Layout({ children }) {
 
             {/* Stage Progress Indicator */}
             <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Pipeline Status</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">
+                Pipeline Status
+              </h3>
               <div className="space-y-2">
                 {[
-                  { name: 'Lexical Analysis', status: 'completed' },
-                  { name: 'Transpilation', status: 'completed' },
-                  { name: 'Semantic Analysis', status: 'completed' },
-                  { name: 'Execution', status: 'idle' },
+                  { name: "Lexical Analysis", status: "completed" },
+                  { name: "Transpilation", status: "completed" },
+                  { name: "Semantic Analysis", status: "completed" },
+                  { name: "Execution", status: "idle" },
                 ].map((stage, index) => (
                   <div key={stage.name} className="flex items-center">
-                    <div 
+                    <div
                       className={`
                         w-2 h-2 rounded-full mr-2
-                        ${stage.status === 'completed' ? 'bg-green-500' : 
-                          stage.status === 'active' ? 'bg-blue-500' :
-                          stage.status === 'error' ? 'bg-red-500' : 'bg-gray-300'
+                        ${
+                          stage.status === "completed"
+                            ? "bg-green-500"
+                            : stage.status === "active"
+                            ? "bg-blue-500"
+                            : stage.status === "error"
+                            ? "bg-red-500"
+                            : "bg-gray-300"
                         }
-                      `} 
+                      `}
                     />
                     <span className="text-xs text-gray-600">{stage.name}</span>
                   </div>
@@ -111,9 +125,7 @@ function Layout({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 overflow-hidden">
-          <div className="h-full">
-            {children}
-          </div>
+          <div className="h-full">{children}</div>
         </main>
       </div>
     </div>

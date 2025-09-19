@@ -1,27 +1,27 @@
-import React, { useState, useRef } from 'react';
-import { 
-  Upload, 
-  FileText, 
-  Play, 
-  Save, 
+import React, { useState, useRef } from "react";
+import {
+  Upload,
+  FileText,
+  Play,
+  Save,
   Download,
   AlertCircle,
   CheckCircle,
-  Loader2
-} from 'lucide-react';
-import AceEditor from 'react-ace';
-import axios from 'axios';
+  Loader2,
+} from "lucide-react";
+import AceEditor from "react-ace";
+import axios from "axios";
 
 // Import ace modes and themes
-import 'ace-builds/src-noconflict/mode-markdown';
-import 'ace-builds/src-noconflict/theme-github';
-import 'ace-builds/src-noconflict/ext-language_tools';
+import "ace-builds/src-noconflict/mode-markdown";
+import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/ext-language_tools";
 
 function DocumentEditor() {
-  const [document, setDocument] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [document, setDocument] = useState("");
+  const [fileName, setFileName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStage, setProcessingStage] = useState('');
+  const [processingStage, setProcessingStage] = useState("");
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
@@ -72,7 +72,7 @@ sudo iptables -L
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (file && file.type === 'text/markdown') {
+    if (file && file.type === "text/markdown") {
       setFileName(file.name);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -80,20 +80,20 @@ sudo iptables -L
       };
       reader.readAsText(file);
     } else {
-      setError('Please select a valid markdown file (.md)');
+      setError("Please select a valid markdown file (.md)");
     }
   };
 
   const handleLoadSample = () => {
     setDocument(sampleDocument);
-    setFileName('network-troubleshooting.md');
+    setFileName("network-troubleshooting.md");
     setError(null);
     setResults(null);
   };
 
   const handleProcess = async () => {
     if (!document.trim()) {
-      setError('Please enter or upload a document first');
+      setError("Please enter or upload a document first");
       return;
     }
 
@@ -103,47 +103,47 @@ sudo iptables -L
 
     try {
       // Stage 1: Lexical Analysis
-      setProcessingStage('Lexical Analysis');
-      const lexerResponse = await axios.post('/api/lexer/parse', {
+      setProcessingStage("Lexical Analysis");
+      const lexerResponse = await axios.post("/api/lexer/parse", {
         content: document,
-        filename: fileName || 'document.md'
+        filename: fileName || "document.md",
       });
 
       // Stage 2: Transpilation
-      setProcessingStage('Transpilation');
-      const transpilerResponse = await axios.post('/api/transpiler/transpile', {
+      setProcessingStage("Transpilation");
+      const transpilerResponse = await axios.post("/api/transpiler/transpile", {
         ast: lexerResponse.data.ast,
-        metadata: lexerResponse.data.metadata
+        metadata: lexerResponse.data.metadata,
       });
 
       // Stage 3: Semantic Analysis
-      setProcessingStage('Semantic Analysis');
-      const analyzerResponse = await axios.post('/api/analyzer/analyze', {
+      setProcessingStage("Semantic Analysis");
+      const analyzerResponse = await axios.post("/api/analyzer/analyze", {
         program: transpilerResponse.data.program,
-        metadata: transpilerResponse.data.metadata
+        metadata: transpilerResponse.data.metadata,
       });
 
       setResults({
         lexer: lexerResponse.data,
         transpiler: transpilerResponse.data,
-        analyzer: analyzerResponse.data
+        analyzer: analyzerResponse.data,
       });
 
-      setProcessingStage('');
+      setProcessingStage("");
     } catch (err) {
-      setError(err.response?.data?.error || 'Processing failed');
-      setProcessingStage('');
+      setError(err.response?.data?.error || "Processing failed");
+      setProcessingStage("");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleSave = () => {
-    const blob = new Blob([document], { type: 'text/markdown' });
+    const blob = new Blob([document], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = fileName || 'document.md';
+    a.download = fileName || "document.md";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -154,8 +154,12 @@ sudo iptables -L
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Document Editor</h1>
-            <p className="text-gray-600">Create and edit troubleshooting documents</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Document Editor
+            </h1>
+            <p className="text-gray-600">
+              Create and edit troubleshooting documents
+            </p>
           </div>
           <div className="flex items-center space-x-3">
             <button
@@ -236,7 +240,7 @@ sudo iptables -L
                   enableSnippets: true,
                   showLineNumbers: true,
                   tabSize: 2,
-                  wrap: true
+                  wrap: true,
                 }}
                 placeholder="Enter your troubleshooting document here...
 
@@ -255,14 +259,18 @@ Use markdown format with the following structure:
         {(results || error) && (
           <div className="w-96 border-l border-gray-200 bg-white overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Processing Results</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Processing Results
+              </h2>
 
               {error && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
                   <div className="flex">
                     <AlertCircle className="h-5 w-5 text-red-400 mr-2 mt-0.5" />
                     <div>
-                      <h3 className="text-sm font-medium text-red-800">Error</h3>
+                      <h3 className="text-sm font-medium text-red-800">
+                        Error
+                      </h3>
                       <p className="text-sm text-red-700 mt-1">{error}</p>
                     </div>
                   </div>
@@ -275,13 +283,17 @@ Use markdown format with the following structure:
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center mb-2">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                      <h3 className="font-medium text-gray-900">Lexical Analysis</h3>
+                      <h3 className="font-medium text-gray-900">
+                        Lexical Analysis
+                      </h3>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
                       Nodes: {results.lexer.ast?.children?.length || 0}
                     </p>
                     <div className="text-xs bg-gray-50 rounded p-2 max-h-32 overflow-y-auto">
-                      <pre>{JSON.stringify(results.lexer.metadata, null, 2)}</pre>
+                      <pre>
+                        {JSON.stringify(results.lexer.metadata, null, 2)}
+                      </pre>
                     </div>
                   </div>
 
@@ -289,13 +301,18 @@ Use markdown format with the following structure:
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center mb-2">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                      <h3 className="font-medium text-gray-900">Transpilation</h3>
+                      <h3 className="font-medium text-gray-900">
+                        Transpilation
+                      </h3>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
-                      Procedures: {results.transpiler.program?.procedures?.length || 0}
+                      Procedures:{" "}
+                      {results.transpiler.program?.procedures?.length || 0}
                     </p>
                     <div className="text-xs bg-gray-50 rounded p-2 max-h-32 overflow-y-auto">
-                      <pre>{JSON.stringify(results.transpiler.metadata, null, 2)}</pre>
+                      <pre>
+                        {JSON.stringify(results.transpiler.metadata, null, 2)}
+                      </pre>
                     </div>
                   </div>
 
@@ -303,13 +320,21 @@ Use markdown format with the following structure:
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center mb-2">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                      <h3 className="font-medium text-gray-900">Semantic Analysis</h3>
+                      <h3 className="font-medium text-gray-900">
+                        Semantic Analysis
+                      </h3>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
-                      Intent: {results.analyzer.analysis?.intent || 'Unknown'}
+                      Intent: {results.analyzer.analysis?.intent || "Unknown"}
                     </p>
                     <div className="text-xs bg-gray-50 rounded p-2 max-h-32 overflow-y-auto">
-                      <pre>{JSON.stringify(results.analyzer.analysis?.entities, null, 2)}</pre>
+                      <pre>
+                        {JSON.stringify(
+                          results.analyzer.analysis?.entities,
+                          null,
+                          2
+                        )}
+                      </pre>
                     </div>
                   </div>
                 </div>

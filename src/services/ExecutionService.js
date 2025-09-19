@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
-const { exec, spawn } = require('child_process');
-const { promisify } = require('util');
-const { generateId } = require('../utils/helpers');
+const { exec, spawn } = require("child_process");
+const { promisify } = require("util");
+const { generateId } = require("../utils/helpers");
 
 const execAsync = promisify(exec);
 
@@ -27,7 +27,9 @@ class ExecutionService {
     try {
       // Check session limits
       if (this.sessions.size >= this.maxConcurrentSessions) {
-        throw new Error(`Maximum concurrent sessions (${this.maxConcurrentSessions}) reached`);
+        throw new Error(
+          `Maximum concurrent sessions (${this.maxConcurrentSessions}) reached`
+        );
       }
 
       const {
@@ -35,7 +37,7 @@ class ExecutionService {
         timeout = 30000,
         memory_limit = 10 * 1024 * 1024, // 10MB default
         auto_continue = false,
-        risk_level = 'medium'
+        risk_level = "medium",
       } = options;
 
       const sessionId = uuidv4();
@@ -43,19 +45,25 @@ class ExecutionService {
         id: sessionId,
         program: program,
         analysis: analysis,
-        options: { debug_mode, timeout, memory_limit, auto_continue, risk_level },
+        options: {
+          debug_mode,
+          timeout,
+          memory_limit,
+          auto_continue,
+          risk_level,
+        },
         state: this.createInitialState(program, analysis),
         createdAt: new Date(),
         lastActivity: new Date(),
         commandHistory: [],
-        totalStepsExecuted: 0
+        totalStepsExecuted: 0,
       };
 
       this.sessions.set(sessionId, session);
 
       // If auto-continue is enabled, start execution immediately
       if (auto_continue) {
-        await this.executeStep(sessionId, 'continue');
+        await this.executeStep(sessionId, "continue");
       }
 
       return {
@@ -66,18 +74,19 @@ class ExecutionService {
           procedures: program.procedures.length,
           total_steps: this.countTotalSteps(program),
           estimated_duration: this.estimateTotalDuration(analysis),
-          risk_assessment: analysis.risk_assessment
-        }
+          risk_assessment: analysis.risk_assessment,
+        },
       };
-
     } catch (error) {
       return {
         success: false,
-        errors: [{
-          type: 'execution_start_error',
-          message: error.message,
-          details: error.stack
-        }]
+        errors: [
+          {
+            type: "execution_start_error",
+            message: error.message,
+            details: error.stack,
+          },
+        ],
       };
     }
   }
@@ -98,22 +107,21 @@ class ExecutionService {
 
       session.lastActivity = new Date();
       const result = await this.processDebugCommand(session, command, params);
-      
+
       // Update session state
       session.commandHistory.push({
         command: command,
         params: params,
         timestamp: new Date().toISOString(),
-        result: result.success
+        result: result.success,
       });
 
       return result;
-
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        state: this.sessions.get(sessionId)?.state || null
+        state: this.sessions.get(sessionId)?.state || null,
       };
     }
   }
@@ -127,30 +135,30 @@ class ExecutionService {
    */
   async processDebugCommand(session, command, params) {
     switch (command) {
-      case 'step_over':
+      case "step_over":
         return await this.stepOver(session);
-      
-      case 'step_into':
+
+      case "step_into":
         return await this.stepInto(session);
-      
-      case 'step_out':
+
+      case "step_out":
         return await this.stepOut(session);
-      
-      case 'continue':
+
+      case "continue":
         return await this.continue(session);
-      
-      case 'pause':
+
+      case "pause":
         return this.pause(session);
-      
-      case 'reset':
+
+      case "reset":
         return this.reset(session);
-      
-      case 'evaluate':
+
+      case "evaluate":
         return await this.evaluateExpression(session, params.expression);
-      
-      case 'inspect':
+
+      case "inspect":
         return this.inspectVariable(session, params.variable);
-      
+
       default:
         throw new Error(`Unknown debug command: ${command}`);
     }
@@ -162,11 +170,14 @@ class ExecutionService {
    * @returns {Object} - Step result
    */
   async stepOver(session) {
-    if (session.state.status === 'completed' || session.state.status === 'error') {
+    if (
+      session.state.status === "completed" ||
+      session.state.status === "error"
+    ) {
       return {
         success: true,
         state: session.state,
-        message: `Execution already ${session.state.status}`
+        message: `Execution already ${session.state.status}`,
       };
     }
 
@@ -175,23 +186,23 @@ class ExecutionService {
       return this.completeExecution(session);
     }
 
-    session.state.status = 'running';
-    
+    session.state.status = "running";
+
     try {
       const stepResult = await this.executeCurrentStep(session, currentStep);
-      
+
       if (stepResult.success) {
         this.advanceToNextStep(session);
         session.totalStepsExecuted++;
-        
+
         // Check if we've hit a breakpoint
         if (this.isBreakpoint(session, session.state.current_step.step_id)) {
-          session.state.status = 'paused';
+          session.state.status = "paused";
           return {
             success: true,
             state: session.state,
             step_result: stepResult,
-            message: 'Paused at breakpoint'
+            message: "Paused at breakpoint",
           };
         }
 
@@ -200,34 +211,33 @@ class ExecutionService {
           return this.completeExecution(session);
         }
 
-        session.state.status = 'paused';
+        session.state.status = "paused";
       } else {
-        session.state.status = 'error';
+        session.state.status = "error";
         session.state.error_state = {
           step_id: currentStep.id,
           error: stepResult.error,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       }
 
       return {
         success: stepResult.success,
         state: session.state,
-        step_result: stepResult
+        step_result: stepResult,
       };
-
     } catch (error) {
-      session.state.status = 'error';
+      session.state.status = "error";
       session.state.error_state = {
         step_id: currentStep.id,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       return {
         success: false,
         state: session.state,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -249,18 +259,21 @@ class ExecutionService {
    */
   async stepOut(session) {
     // Execute until end of current procedure
-    while (this.getCurrentStep(session) && 
-           this.getCurrentStep(session).procedure_id === session.state.current_step.procedure_id) {
+    while (
+      this.getCurrentStep(session) &&
+      this.getCurrentStep(session).procedure_id ===
+        session.state.current_step.procedure_id
+    ) {
       const result = await this.stepOver(session);
-      if (!result.success || session.state.status === 'error') {
+      if (!result.success || session.state.status === "error") {
         return result;
       }
     }
-    
+
     return {
       success: true,
       state: session.state,
-      message: 'Stepped out of procedure'
+      message: "Stepped out of procedure",
     };
   }
 
@@ -270,35 +283,35 @@ class ExecutionService {
    * @returns {Object} - Execution result
    */
   async continue(session) {
-    session.state.status = 'running';
-    
-    while (this.getCurrentStep(session) && session.state.status === 'running') {
+    session.state.status = "running";
+
+    while (this.getCurrentStep(session) && session.state.status === "running") {
       const result = await this.stepOver(session);
-      
+
       if (!result.success) {
         return result;
       }
-      
+
       // Check if we hit a breakpoint or were paused
-      if (session.state.status === 'paused') {
+      if (session.state.status === "paused") {
         return {
           success: true,
           state: session.state,
-          message: 'Execution paused'
+          message: "Execution paused",
         };
       }
-      
+
       // Prevent infinite loops with a reasonable limit
       if (session.totalStepsExecuted > 1000) {
-        session.state.status = 'error';
+        session.state.status = "error";
         session.state.error_state = {
-          error: 'Execution exceeded step limit (1000 steps)',
-          timestamp: new Date().toISOString()
+          error: "Execution exceeded step limit (1000 steps)",
+          timestamp: new Date().toISOString(),
         };
         return {
           success: false,
           state: session.state,
-          error: 'Step limit exceeded'
+          error: "Step limit exceeded",
         };
       }
     }
@@ -306,7 +319,10 @@ class ExecutionService {
     return {
       success: true,
       state: session.state,
-      message: session.state.status === 'completed' ? 'Execution completed' : 'Execution stopped'
+      message:
+        session.state.status === "completed"
+          ? "Execution completed"
+          : "Execution stopped",
     };
   }
 
@@ -316,14 +332,14 @@ class ExecutionService {
    * @returns {Object} - Pause result
    */
   pause(session) {
-    if (session.state.status === 'running') {
-      session.state.status = 'paused';
+    if (session.state.status === "running") {
+      session.state.status = "paused";
     }
-    
+
     return {
       success: true,
       state: session.state,
-      message: 'Execution paused'
+      message: "Execution paused",
     };
   }
 
@@ -336,11 +352,11 @@ class ExecutionService {
     session.state = this.createInitialState(session.program, session.analysis);
     session.totalStepsExecuted = 0;
     session.commandHistory = [];
-    
+
     return {
       success: true,
       state: session.state,
-      message: 'Execution reset to beginning'
+      message: "Execution reset to beginning",
     };
   }
 
@@ -352,39 +368,39 @@ class ExecutionService {
    */
   async executeCurrentStep(session, step) {
     const startTime = Date.now();
-    
+
     try {
       let result;
-      
+
       switch (step.type) {
-        case 'command':
+        case "command":
           result = await this.executeCommand(session, step);
           break;
-          
-        case 'conditional':
+
+        case "conditional":
           result = await this.executeConditional(session, step);
           break;
-          
-        case 'assignment':
+
+        case "assignment":
           result = this.executeAssignment(session, step);
           break;
-          
-        case 'choice':
+
+        case "choice":
           result = await this.executeChoice(session, step);
           break;
-          
-        case 'analysis':
+
+        case "analysis":
           result = this.executeAnalysis(session, step);
           break;
-          
-        case 'note':
+
+        case "note":
           result = this.executeNote(session, step);
           break;
-          
+
         default:
           result = {
             success: false,
-            error: `Unknown step type: ${step.type}`
+            error: `Unknown step type: ${step.type}`,
           };
       }
 
@@ -397,16 +413,15 @@ class ExecutionService {
         duration_ms: Date.now() - startTime,
         success: result.success,
         output: result.output || null,
-        error: result.error || null
+        error: result.error || null,
       });
 
       return result;
-
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        output: null
+        output: null,
       };
     }
   }
@@ -420,39 +435,40 @@ class ExecutionService {
   async executeCommand(session, step) {
     try {
       // Check if this is a risky command and we're in safe mode
-      if (session.options.risk_level === 'low') {
+      if (session.options.risk_level === "low") {
         const riskLevel = this.assessCommandRisk(step.command);
-        if (riskLevel === 'high') {
+        if (riskLevel === "high") {
           return {
             success: false,
-            error: 'High-risk command blocked in safe mode',
+            error: "High-risk command blocked in safe mode",
             output: null,
-            risk_level: riskLevel
+            risk_level: riskLevel,
           };
         }
       }
 
       // Replace variables in command
       const resolvedCommand = this.resolveVariables(session, step.command);
-      
+
       // Execute the command
       const { stdout, stderr } = await execAsync(resolvedCommand, {
         timeout: session.options.timeout,
-        maxBuffer: 1024 * 1024 // 1MB buffer
+        maxBuffer: 1024 * 1024, // 1MB buffer
       });
 
       const output = stdout.trim() || stderr.trim();
-      
+
       // Store output in heap if step has assignment
       if (step.assign_to) {
         session.state.heap.tool_outputs[step.assign_to] = {
           command: resolvedCommand,
           output: output,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
-        
+
         // Also store in current stack frame variables
-        const currentFrame = session.state.stack[session.state.stack.length - 1];
+        const currentFrame =
+          session.state.stack[session.state.stack.length - 1];
         currentFrame.variables[step.assign_to] = output;
       }
 
@@ -461,15 +477,14 @@ class ExecutionService {
         output: output,
         command: resolvedCommand,
         stdout: stdout,
-        stderr: stderr
+        stderr: stderr,
       };
-
     } catch (error) {
       return {
         success: false,
         error: error.message,
         output: error.stdout || error.stderr || null,
-        command: step.command
+        command: step.command,
       };
     }
   }
@@ -483,7 +498,7 @@ class ExecutionService {
   async executeConditional(session, step) {
     try {
       const conditionResult = this.evaluateCondition(session, step.condition);
-      
+
       if (conditionResult) {
         // Execute true branch
         if (step.true_branch) {
@@ -499,14 +514,13 @@ class ExecutionService {
       return {
         success: true,
         output: `Condition evaluated to: ${conditionResult}`,
-        condition_result: conditionResult
+        condition_result: conditionResult,
       };
-
     } catch (error) {
       return {
         success: false,
         error: `Condition evaluation failed: ${error.message}`,
-        output: null
+        output: null,
       };
     }
   }
@@ -521,9 +535,9 @@ class ExecutionService {
     try {
       const value = this.resolveVariables(session, step.value);
       const currentFrame = session.state.stack[session.state.stack.length - 1];
-      
-      if (step.assign_to === 'memory' || step.assign_to === 'global') {
-        session.state.memory.persistent_vars[step.variable || 'temp'] = value;
+
+      if (step.assign_to === "memory" || step.assign_to === "global") {
+        session.state.memory.persistent_vars[step.variable || "temp"] = value;
       } else {
         currentFrame.variables[step.assign_to] = value;
       }
@@ -532,14 +546,13 @@ class ExecutionService {
         success: true,
         output: `Assigned: ${step.assign_to} = ${value}`,
         variable: step.assign_to,
-        value: value
+        value: value,
       };
-
     } catch (error) {
       return {
         success: false,
         error: `Assignment failed: ${error.message}`,
-        output: null
+        output: null,
       };
     }
   }
@@ -554,21 +567,21 @@ class ExecutionService {
     // In automated mode, select first option
     // In interactive mode, this would wait for user input
     const selectedOption = step.options[0];
-    
+
     if (selectedOption && selectedOption.action) {
       const result = await this.executeAction(session, selectedOption.action);
       return {
         success: result.success,
         output: `Selected option: ${selectedOption.description}`,
         selected_option: selectedOption,
-        action_result: result
+        action_result: result,
       };
     }
 
     return {
       success: true,
       output: `Choice presented: ${step.options.length} options available`,
-      options: step.options
+      options: step.options,
     };
   }
 
@@ -580,10 +593,10 @@ class ExecutionService {
    */
   executeAnalysis(session, step) {
     const inputs = {};
-    
+
     // Collect input variables
     if (step.input) {
-      step.input.forEach(varName => {
+      step.input.forEach((varName) => {
         inputs[varName] = this.getVariable(session, varName);
       });
     }
@@ -591,8 +604,11 @@ class ExecutionService {
     // Extract variables if specified
     const extracted = {};
     if (step.extract) {
-      step.extract.forEach(varName => {
-        extracted[varName] = this.extractFromDescription(step.description, varName);
+      step.extract.forEach((varName) => {
+        extracted[varName] = this.extractFromDescription(
+          step.description,
+          varName
+        );
       });
     }
 
@@ -600,7 +616,7 @@ class ExecutionService {
       success: true,
       output: `Analysis: ${step.description}`,
       inputs: inputs,
-      extracted: extracted
+      extracted: extracted,
     };
   }
 
@@ -613,9 +629,9 @@ class ExecutionService {
   executeNote(session, step) {
     return {
       success: true,
-      output: `Note (${step.level || 'info'}): ${step.message}`,
+      output: `Note (${step.level || "info"}): ${step.message}`,
       level: step.level,
-      message: step.message
+      message: step.message,
     };
   }
 
@@ -629,18 +645,18 @@ class ExecutionService {
    */
   async executeAction(session, action) {
     switch (action.type) {
-      case 'command':
+      case "command":
         return await this.executeCommand(session, action);
-      case 'log':
+      case "log":
         return {
           success: true,
           output: action.message,
-          message: action.message
+          message: action.message,
         };
       default:
         return {
           success: false,
-          error: `Unknown action type: ${action.type}`
+          error: `Unknown action type: ${action.type}`,
         };
     }
   }
@@ -653,10 +669,12 @@ class ExecutionService {
   getCurrentStep(session) {
     const currentProcedureId = session.state.current_step.procedure_id;
     const currentStepIndex = session.state.current_step.step_index;
-    
-    const procedure = session.program.procedures.find(p => p.id === currentProcedureId);
+
+    const procedure = session.program.procedures.find(
+      (p) => p.id === currentProcedureId
+    );
     if (!procedure) return null;
-    
+
     return procedure.steps[currentStepIndex] || null;
   }
 
@@ -666,29 +684,37 @@ class ExecutionService {
    */
   advanceToNextStep(session) {
     const currentProcedureId = session.state.current_step.procedure_id;
-    const procedure = session.program.procedures.find(p => p.id === currentProcedureId);
-    
+    const procedure = session.program.procedures.find(
+      (p) => p.id === currentProcedureId
+    );
+
     if (!procedure) return;
-    
+
     session.state.current_step.step_index++;
     session.state.current_step.instruction_pointer++;
-    
+
     // If we've finished this procedure, move to next one
     if (session.state.current_step.step_index >= procedure.steps.length) {
-      const currentProcIndex = session.program.execution_order.indexOf(currentProcedureId);
-      const nextProcedureId = session.program.execution_order[currentProcIndex + 1];
-      
+      const currentProcIndex =
+        session.program.execution_order.indexOf(currentProcedureId);
+      const nextProcedureId =
+        session.program.execution_order[currentProcIndex + 1];
+
       if (nextProcedureId) {
         session.state.current_step.procedure_id = nextProcedureId;
         session.state.current_step.step_index = 0;
-        
+
         // Update step_id to first step of next procedure
-        const nextProcedure = session.program.procedures.find(p => p.id === nextProcedureId);
-        session.state.current_step.step_id = nextProcedure?.steps[0]?.id || 'unknown';
+        const nextProcedure = session.program.procedures.find(
+          (p) => p.id === nextProcedureId
+        );
+        session.state.current_step.step_id =
+          nextProcedure?.steps[0]?.id || "unknown";
       }
     } else {
       // Update step_id to current step
-      session.state.current_step.step_id = procedure.steps[session.state.current_step.step_index]?.id || 'unknown';
+      session.state.current_step.step_id =
+        procedure.steps[session.state.current_step.step_index]?.id || "unknown";
     }
   }
 
@@ -698,18 +724,18 @@ class ExecutionService {
    * @returns {Object} - Completion result
    */
   completeExecution(session) {
-    session.state.status = 'completed';
+    session.state.status = "completed";
     session.state.completed_at = new Date().toISOString();
-    
+
     return {
       success: true,
       state: session.state,
-      message: 'Execution completed successfully',
+      message: "Execution completed successfully",
       summary: {
         total_steps: session.totalStepsExecuted,
         duration: Date.now() - new Date(session.createdAt).getTime(),
-        procedures_executed: session.program.procedures.length
-      }
+        procedures_executed: session.program.procedures.length,
+      },
     };
   }
 
@@ -720,7 +746,9 @@ class ExecutionService {
    * @returns {boolean} - True if breakpoint
    */
   isBreakpoint(session, stepId) {
-    return session.state.breakpoints && session.state.breakpoints.includes(stepId);
+    return (
+      session.state.breakpoints && session.state.breakpoints.includes(stepId)
+    );
   }
 
   /**
@@ -731,7 +759,7 @@ class ExecutionService {
    */
   resolveVariables(session, text) {
     if (!text) return text;
-    
+
     return text.replace(/\$(\w+)/g, (match, varName) => {
       const value = this.getVariable(session, varName);
       return value !== undefined ? value : match;
@@ -750,17 +778,17 @@ class ExecutionService {
     if (currentFrame.variables[varName] !== undefined) {
       return currentFrame.variables[varName];
     }
-    
+
     // Check persistent memory
     if (session.state.memory.persistent_vars[varName] !== undefined) {
       return session.state.memory.persistent_vars[varName];
     }
-    
+
     // Check tool outputs
     if (session.state.heap.tool_outputs[varName] !== undefined) {
       return session.state.heap.tool_outputs[varName].output;
     }
-    
+
     return undefined;
   }
 
@@ -772,19 +800,21 @@ class ExecutionService {
    */
   evaluateCondition(session, condition) {
     switch (condition.type) {
-      case 'equality_check':
+      case "equality_check":
         const varValue = this.getVariable(session, condition.variable);
         return varValue == condition.value;
-        
-      case 'contains_check':
+
+      case "contains_check":
         const containerValue = this.getVariable(session, condition.variable);
-        return containerValue && containerValue.toString().includes(condition.value);
-        
-      case 'boolean_check':
+        return (
+          containerValue && containerValue.toString().includes(condition.value)
+        );
+
+      case "boolean_check":
         // Simple boolean expression evaluation
         const resolved = this.resolveVariables(session, condition.expression);
         return Boolean(resolved);
-        
+
       default:
         return false;
     }
@@ -797,20 +827,35 @@ class ExecutionService {
    */
   assessCommandRisk(command) {
     const cmd = command.toLowerCase();
-    
+
     // High risk commands
-    const highRisk = ['rm -rf', 'format', 'fdisk', 'mkfs', 'dd if=', 'shutdown', 'reboot'];
-    if (highRisk.some(risk => cmd.includes(risk))) {
-      return 'high';
+    const highRisk = [
+      "rm -rf",
+      "format",
+      "fdisk",
+      "mkfs",
+      "dd if=",
+      "shutdown",
+      "reboot",
+    ];
+    if (highRisk.some((risk) => cmd.includes(risk))) {
+      return "high";
     }
-    
+
     // Medium risk commands
-    const mediumRisk = ['rm ', 'del ', 'systemctl stop', 'service stop', 'iptables', 'chmod 777'];
-    if (mediumRisk.some(risk => cmd.includes(risk))) {
-      return 'medium';
+    const mediumRisk = [
+      "rm ",
+      "del ",
+      "systemctl stop",
+      "service stop",
+      "iptables",
+      "chmod 777",
+    ];
+    if (mediumRisk.some((risk) => cmd.includes(risk))) {
+      return "medium";
     }
-    
-    return 'low';
+
+    return "low";
   }
 
   /**
@@ -825,15 +870,15 @@ class ExecutionService {
       ip_address: /\b(?:\d{1,3}\.){3}\d{1,3}\b/,
       interface: /\b(?:eth0|eth1|wlan0|lo|docker0)\b/,
       service: /\b(?:apache2|nginx|mysql|ssh|ftp)\b/,
-      port: /\bport\s+(\d+)\b/i
+      port: /\bport\s+(\d+)\b/i,
     };
-    
+
     const pattern = patterns[varName.toLowerCase()];
     if (pattern) {
       const match = description.match(pattern);
       return match ? match[0] : null;
     }
-    
+
     return null;
   }
 
@@ -846,42 +891,41 @@ class ExecutionService {
   async evaluateExpression(session, expression) {
     try {
       const resolved = this.resolveVariables(session, expression);
-      
+
       // If it's a simple variable lookup
-      if (expression.startsWith('$')) {
+      if (expression.startsWith("$")) {
         const varName = expression.substring(1);
         const value = this.getVariable(session, varName);
         return {
           success: true,
           result: value,
           expression: expression,
-          resolved: resolved
+          resolved: resolved,
         };
       }
-      
+
       // If it's a command to execute
-      if (expression.startsWith('!')) {
+      if (expression.startsWith("!")) {
         const command = expression.substring(1);
         const result = await this.executeCommand(session, { command: command });
         return {
           success: result.success,
           result: result.output,
           expression: expression,
-          error: result.error
+          error: result.error,
         };
       }
-      
+
       return {
         success: true,
         result: resolved,
-        expression: expression
+        expression: expression,
       };
-      
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        expression: expression
+        expression: expression,
       };
     }
   }
@@ -894,22 +938,22 @@ class ExecutionService {
    */
   inspectVariable(session, varName) {
     const value = this.getVariable(session, varName);
-    
+
     if (value === undefined) {
       return {
         success: false,
         error: `Variable '${varName}' not found`,
-        variable: varName
+        variable: varName,
       };
     }
-    
+
     return {
       success: true,
       variable: varName,
       value: value,
       type: typeof value,
       length: value?.length || 0,
-      source: this.findVariableSource(session, varName)
+      source: this.findVariableSource(session, varName),
     };
   }
 
@@ -922,18 +966,18 @@ class ExecutionService {
   findVariableSource(session, varName) {
     const currentFrame = session.state.stack[session.state.stack.length - 1];
     if (currentFrame.variables[varName] !== undefined) {
-      return 'local_variable';
+      return "local_variable";
     }
-    
+
     if (session.state.memory.persistent_vars[varName] !== undefined) {
-      return 'persistent_memory';
+      return "persistent_memory";
     }
-    
+
     if (session.state.heap.tool_outputs[varName] !== undefined) {
-      return 'tool_output';
+      return "tool_output";
     }
-    
-    return 'unknown';
+
+    return "unknown";
   }
 
   /**
@@ -942,7 +986,10 @@ class ExecutionService {
    * @returns {number} - Total steps
    */
   countTotalSteps(program) {
-    return program.procedures.reduce((total, proc) => total + proc.steps.length, 0);
+    return program.procedures.reduce(
+      (total, proc) => total + proc.steps.length,
+      0
+    );
   }
 
   /**
@@ -983,13 +1030,12 @@ class ExecutionService {
         success: true,
         breakpoints: breakpoints,
         action: action,
-        step_id: stepId
+        step_id: stepId,
       };
-
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -1013,8 +1059,8 @@ class ExecutionService {
         created_at: session.createdAt.toISOString(),
         last_activity: session.lastActivity.toISOString(),
         total_steps_executed: session.totalStepsExecuted,
-        command_history_length: session.commandHistory.length
-      }
+        command_history_length: session.commandHistory.length,
+      },
     };
   }
 
@@ -1028,18 +1074,18 @@ class ExecutionService {
     if (!session) {
       return {
         success: false,
-        error: "Session not found"
+        error: "Session not found",
       };
     }
 
     const deleted = this.sessions.delete(sessionId);
-    
+
     return {
       success: true,
       stopped: deleted,
       session_id: sessionId,
       final_state: session.state.status,
-      steps_executed: session.totalStepsExecuted
+      steps_executed: session.totalStepsExecuted,
     };
   }
 
@@ -1055,7 +1101,7 @@ class ExecutionService {
       status: session.state.status,
       program_name: session.program.name,
       current_procedure: session.state.current_step.procedure_id,
-      steps_executed: session.totalStepsExecuted
+      steps_executed: session.totalStepsExecuted,
     }));
   }
 
@@ -1065,7 +1111,7 @@ class ExecutionService {
    */
   getHealthStatus() {
     const memoryUsage = process.memoryUsage();
-    
+
     return {
       status: "healthy",
       activeSessions: this.sessions.size,
@@ -1074,10 +1120,10 @@ class ExecutionService {
         rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
         heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
         heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
-        external: `${Math.round(memoryUsage.external / 1024 / 1024)}MB`
+        external: `${Math.round(memoryUsage.external / 1024 / 1024)}MB`,
       },
       uptime: process.uptime(),
-      commandTimeout: this.commandTimeout
+      commandTimeout: this.commandTimeout,
     };
   }
 
@@ -1124,13 +1170,15 @@ class ExecutionService {
       breakpoints: [],
       error_state: null,
       started_at: new Date().toISOString(),
-      analysis_summary: analysis ? {
-        program_intent: analysis.program_intent,
-        confidence: analysis.confidence,
-        risk_level: analysis.risk_assessment?.overall_risk || 'unknown',
-        total_procedures: analysis.procedures?.length || 0,
-        total_entities: analysis.global_entities?.length || 0
-      } : null
+      analysis_summary: analysis
+        ? {
+            program_intent: analysis.program_intent,
+            confidence: analysis.confidence,
+            risk_level: analysis.risk_assessment?.overall_risk || "unknown",
+            total_procedures: analysis.procedures?.length || 0,
+            total_entities: analysis.global_entities?.length || 0,
+          }
+        : null,
     };
   }
 
@@ -1139,7 +1187,7 @@ class ExecutionService {
    */
   cleanupInactiveSessions() {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    
+
     for (const [sessionId, session] of this.sessions.entries()) {
       if (session.lastActivity < oneHourAgo) {
         this.sessions.delete(sessionId);
@@ -1164,19 +1212,21 @@ class ExecutionService {
         name: session.program.name,
         version: session.program.version,
         procedures: session.program.procedures.length,
-        tools: session.program.tools
+        tools: session.program.tools,
       },
-      analysis: session.analysis ? {
-        program_intent: session.analysis.program_intent,
-        confidence: session.analysis.confidence,
-        risk_level: session.analysis.risk_assessment?.overall_risk
-      } : null,
+      analysis: session.analysis
+        ? {
+            program_intent: session.analysis.program_intent,
+            confidence: session.analysis.confidence,
+            risk_level: session.analysis.risk_assessment?.overall_risk,
+          }
+        : null,
       state: session.state,
       options: session.options,
       created_at: session.createdAt.toISOString(),
       last_activity: session.lastActivity.toISOString(),
       total_steps_executed: session.totalStepsExecuted,
-      command_history: session.commandHistory.slice(-10) // Last 10 commands
+      command_history: session.commandHistory.slice(-10), // Last 10 commands
     };
   }
 }

@@ -1,49 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Upload, 
-  FileText, 
-  Activity, 
-  CheckCircle, 
+import React, { useState, useEffect } from "react";
+import {
+  Upload,
+  FileText,
+  Activity,
+  CheckCircle,
   Clock,
   BarChart3,
   AlertCircle,
-  Zap
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
+  Zap,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 function Dashboard() {
   const [stats, setStats] = useState({
     documentsProcessed: 42,
     successRate: 95.2,
     averageExecutionTime: 1.3,
-    activeProcesses: 3
+    activeProcesses: 3,
   });
 
   const [recentDocuments, setRecentDocuments] = useState([
     {
       id: 1,
-      name: 'nginx-troubleshooting.md',
-      status: 'completed',
-      timestamp: '2 minutes ago',
-      stages: 4
+      name: "nginx-troubleshooting.md",
+      status: "completed",
+      timestamp: "2 minutes ago",
+      stages: 4,
     },
     {
       id: 2,
-      name: 'database-connection.md',
-      status: 'processing',
-      timestamp: '5 minutes ago',
-      stages: 2
+      name: "database-connection.md",
+      status: "processing",
+      timestamp: "5 minutes ago",
+      stages: 2,
     },
     {
       id: 3,
-      name: 'ssl-certificate-renewal.md',
-      status: 'completed',
-      timestamp: '1 hour ago',
-      stages: 4
-    }
+      name: "ssl-certificate-renewal.md",
+      status: "completed",
+      timestamp: "1 hour ago",
+      stages: 4,
+    },
   ]);
 
-  const StatCard = ({ title, value, icon: Icon, color = 'blue' }) => (
+  const StatCard = ({ title, value, icon: Icon, color = "blue" }) => (
     <div className="bg-white rounded-lg shadow-sm p-6 card-hover">
       <div className="flex items-center">
         <div className={`p-2 bg-${color}-100 rounded-lg`}>
@@ -59,11 +59,11 @@ function Dashboard() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'processing':
+      case "processing":
         return <Clock className="h-5 w-5 text-blue-500 animate-spin" />;
-      case 'error':
+      case "error":
         return <AlertCircle className="h-5 w-5 text-red-500" />;
       default:
         return <FileText className="h-5 w-5 text-gray-400" />;
@@ -72,14 +72,14 @@ function Dashboard() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
-        return 'text-green-700 bg-green-100';
-      case 'processing':
-        return 'text-blue-700 bg-blue-100';
-      case 'error':
-        return 'text-red-700 bg-red-100';
+      case "completed":
+        return "text-green-700 bg-green-100";
+      case "processing":
+        return "text-blue-700 bg-blue-100";
+      case "error":
+        return "text-red-700 bg-red-100";
       default:
-        return 'text-gray-700 bg-gray-100';
+        return "text-gray-700 bg-gray-100";
     }
   };
 
@@ -89,7 +89,8 @@ function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">
-          Monitor your ENTRAN pipeline performance and manage troubleshooting documents
+          Monitor your ENTRAN pipeline performance and manage troubleshooting
+          documents
         </p>
       </div>
 
@@ -125,7 +126,9 @@ function Dashboard() {
         {/* Quick Actions */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Quick Actions
+            </h2>
             <div className="space-y-3">
               <Link
                 to="/editor"
@@ -133,8 +136,12 @@ function Dashboard() {
               >
                 <Upload className="h-5 w-5 text-primary-600 mr-3" />
                 <div>
-                  <p className="font-medium text-primary-900">Upload Document</p>
-                  <p className="text-sm text-primary-600">Start a new troubleshooting workflow</p>
+                  <p className="font-medium text-primary-900">
+                    Upload Document
+                  </p>
+                  <p className="text-sm text-primary-600">
+                    Start a new troubleshooting workflow
+                  </p>
                 </div>
               </Link>
 
@@ -145,7 +152,9 @@ function Dashboard() {
                 <BarChart3 className="h-5 w-5 text-gray-600 mr-3" />
                 <div>
                   <p className="font-medium text-gray-900">View Pipeline</p>
-                  <p className="text-sm text-gray-600">Monitor compilation stages</p>
+                  <p className="text-sm text-gray-600">
+                    Monitor compilation stages
+                  </p>
                 </div>
               </Link>
 
@@ -156,7 +165,9 @@ function Dashboard() {
                 <Activity className="h-5 w-5 text-gray-600 mr-3" />
                 <div>
                   <p className="font-medium text-gray-900">Execution Monitor</p>
-                  <p className="text-sm text-gray-600">Debug and control execution</p>
+                  <p className="text-sm text-gray-600">
+                    Debug and control execution
+                  </p>
                 </div>
               </Link>
             </div>
@@ -167,9 +178,11 @@ function Dashboard() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Documents</h2>
-              <Link 
-                to="/editor" 
+              <h2 className="text-lg font-semibold text-gray-900">
+                Recent Documents
+              </h2>
+              <Link
+                to="/editor"
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
                 View all
@@ -191,7 +204,11 @@ function Dashboard() {
                       </p>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(doc.status)}`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                      doc.status
+                    )}`}
+                  >
                     {doc.status}
                   </span>
                 </div>
@@ -204,18 +221,25 @@ function Dashboard() {
       {/* Pipeline Overview */}
       <div className="mt-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Pipeline Overview</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Pipeline Overview
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { stage: 'Lexical Analysis', status: 'healthy', count: 156 },
-              { stage: 'Transpilation', status: 'healthy', count: 142 },
-              { stage: 'Semantic Analysis', status: 'healthy', count: 139 },
-              { stage: 'Execution', status: 'warning', count: 134 }
+              { stage: "Lexical Analysis", status: "healthy", count: 156 },
+              { stage: "Transpilation", status: "healthy", count: 142 },
+              { stage: "Semantic Analysis", status: "healthy", count: 139 },
+              { stage: "Execution", status: "warning", count: 134 },
             ].map((item) => (
-              <div key={item.stage} className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-                  item.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
-                }`} />
+              <div
+                key={item.stage}
+                className="text-center p-4 bg-gray-50 rounded-lg"
+              >
+                <div
+                  className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                    item.status === "healthy" ? "bg-green-500" : "bg-yellow-500"
+                  }`}
+                />
                 <p className="font-medium text-gray-900">{item.stage}</p>
                 <p className="text-sm text-gray-600">{item.count} processed</p>
               </div>

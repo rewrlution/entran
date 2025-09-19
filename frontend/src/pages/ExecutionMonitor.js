@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Play, 
-  Pause, 
-  StepForward, 
-  Square, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Play,
+  Pause,
+  StepForward,
+  Square,
   Terminal,
   AlertTriangle,
   CheckCircle,
@@ -11,9 +11,9 @@ import {
   SkipForward,
   Rewind,
   Settings,
-  Download
-} from 'lucide-react';
-import axios from 'axios';
+  Download,
+} from "lucide-react";
+import axios from "axios";
 
 function ExecutionMonitor() {
   const [session, setSession] = useState(null);
@@ -22,56 +22,68 @@ function ExecutionMonitor() {
   const [currentStep, setCurrentStep] = useState(0);
   const [executionLog, setExecutionLog] = useState([]);
   const [variables, setVariables] = useState({});
-  const [debuggerOutput, setDebuggerOutput] = useState('');
+  const [debuggerOutput, setDebuggerOutput] = useState("");
   const terminalRef = useRef(null);
 
   const sampleProgram = {
-    title: 'Network Connectivity Troubleshooting',
+    title: "Network Connectivity Troubleshooting",
     procedures: [
       {
-        name: 'basic_connectivity',
+        name: "basic_connectivity",
         steps: [
-          { command: 'ping google.com -c 3', description: 'Test basic internet connectivity' },
-          { command: 'nslookup company.com', description: 'Verify DNS resolution' },
-          { command: 'curl -I https://company.com', description: 'Test HTTP connectivity' }
-        ]
+          {
+            command: "ping google.com -c 3",
+            description: "Test basic internet connectivity",
+          },
+          {
+            command: "nslookup company.com",
+            description: "Verify DNS resolution",
+          },
+          {
+            command: "curl -I https://company.com",
+            description: "Test HTTP connectivity",
+          },
+        ],
       },
       {
-        name: 'network_config',
+        name: "network_config",
         steps: [
-          { command: 'ip addr show', description: 'Check IP configuration' },
-          { command: 'ip route', description: 'Verify routing table' },
-          { command: 'sudo netstat -tulpn', description: 'Check listening ports' }
-        ]
-      }
-    ]
+          { command: "ip addr show", description: "Check IP configuration" },
+          { command: "ip route", description: "Verify routing table" },
+          {
+            command: "sudo netstat -tulpn",
+            description: "Check listening ports",
+          },
+        ],
+      },
+    ],
   };
 
   const debuggerCommands = [
-    { name: 'run', description: 'Start execution' },
-    { name: 'step', description: 'Execute next step' },
-    { name: 'continue', description: 'Continue execution' },
-    { name: 'pause', description: 'Pause execution' },
-    { name: 'stop', description: 'Stop execution' },
-    { name: 'restart', description: 'Restart program' },
-    { name: 'vars', description: 'Show variables' },
-    { name: 'skip', description: 'Skip current step' }
+    { name: "run", description: "Start execution" },
+    { name: "step", description: "Execute next step" },
+    { name: "continue", description: "Continue execution" },
+    { name: "pause", description: "Pause execution" },
+    { name: "stop", description: "Stop execution" },
+    { name: "restart", description: "Restart program" },
+    { name: "vars", description: "Show variables" },
+    { name: "skip", description: "Skip current step" },
   ];
 
   useEffect(() => {
     // Simulate loading a session
     setSession({
-      id: 'session_123',
+      id: "session_123",
       program: sampleProgram,
-      status: 'ready',
-      created: new Date().toISOString()
+      status: "ready",
+      created: new Date().toISOString(),
     });
 
     // Initialize variables
     setVariables({
-      '$TARGET_HOST': 'company.com',
-      '$TIMEOUT': '30',
-      '$LOG_FILE': '/tmp/network_test.log'
+      $TARGET_HOST: "company.com",
+      $TIMEOUT: "30",
+      $LOG_FILE: "/tmp/network_test.log",
     });
   }, []);
 
@@ -82,9 +94,9 @@ function ExecutionMonitor() {
       type,
       message,
       step,
-      stepNumber: currentStep
+      stepNumber: currentStep,
     };
-    setExecutionLog(prev => [...prev, entry]);
+    setExecutionLog((prev) => [...prev, entry]);
   };
 
   const handleStart = async () => {
@@ -92,17 +104,17 @@ function ExecutionMonitor() {
 
     setIsExecuting(true);
     setIsPaused(false);
-    addLogEntry('info', 'Starting program execution');
+    addLogEntry("info", "Starting program execution");
 
     try {
-      const response = await axios.post('/api/executor/start', {
+      const response = await axios.post("/api/executor/start", {
         program: session.program,
-        sessionId: session.id
+        sessionId: session.id,
       });
 
-      addLogEntry('success', 'Execution started successfully');
+      addLogEntry("success", "Execution started successfully");
     } catch (error) {
-      addLogEntry('error', 'Failed to start execution: ' + error.message);
+      addLogEntry("error", "Failed to start execution: " + error.message);
       setIsExecuting(false);
     }
   };
@@ -111,90 +123,100 @@ function ExecutionMonitor() {
     if (!session || !isExecuting) return;
 
     try {
-      const response = await axios.post('/api/executor/step', {
-        sessionId: session.id
+      const response = await axios.post("/api/executor/step", {
+        sessionId: session.id,
       });
 
-      const currentProcedure = session.program.procedures[Math.floor(currentStep / 3)] || session.program.procedures[0];
+      const currentProcedure =
+        session.program.procedures[Math.floor(currentStep / 3)] ||
+        session.program.procedures[0];
       const stepIndex = currentStep % 3;
       const step = currentProcedure.steps[stepIndex];
 
       if (step) {
-        addLogEntry('info', `Executing: ${step.command}`, step);
-        setDebuggerOutput(prev => prev + `\n$ ${step.command}\n> ${step.description}\n`);
-        setCurrentStep(prev => prev + 1);
+        addLogEntry("info", `Executing: ${step.command}`, step);
+        setDebuggerOutput(
+          (prev) => prev + `\n$ ${step.command}\n> ${step.description}\n`
+        );
+        setCurrentStep((prev) => prev + 1);
       }
-
     } catch (error) {
-      addLogEntry('error', 'Step execution failed: ' + error.message);
+      addLogEntry("error", "Step execution failed: " + error.message);
     }
   };
 
   const handlePause = () => {
     setIsPaused(true);
-    addLogEntry('warning', 'Execution paused');
+    addLogEntry("warning", "Execution paused");
   };
 
   const handleStop = () => {
     setIsExecuting(false);
     setIsPaused(false);
     setCurrentStep(0);
-    addLogEntry('info', 'Execution stopped');
-    setDebuggerOutput('');
+    addLogEntry("info", "Execution stopped");
+    setDebuggerOutput("");
   };
 
   const handleContinue = () => {
     setIsPaused(false);
-    addLogEntry('info', 'Execution resumed');
+    addLogEntry("info", "Execution resumed");
   };
 
   const handleSkip = () => {
-    setCurrentStep(prev => prev + 1);
-    addLogEntry('warning', 'Step skipped');
+    setCurrentStep((prev) => prev + 1);
+    addLogEntry("warning", "Step skipped");
   };
 
   const executeDebuggerCommand = (command) => {
     const cmd = command.toLowerCase().trim();
-    
+
     switch (cmd) {
-      case 'run':
+      case "run":
         handleStart();
         break;
-      case 'step':
+      case "step":
         handleStep();
         break;
-      case 'continue':
+      case "continue":
         handleContinue();
         break;
-      case 'pause':
+      case "pause":
         handlePause();
         break;
-      case 'stop':
+      case "stop":
         handleStop();
         break;
-      case 'skip':
+      case "skip":
         handleSkip();
         break;
-      case 'vars':
-        setDebuggerOutput(prev => prev + '\nVariables:\n' + 
-          Object.entries(variables).map(([k, v]) => `  ${k} = ${v}`).join('\n') + '\n');
+      case "vars":
+        setDebuggerOutput(
+          (prev) =>
+            prev +
+            "\nVariables:\n" +
+            Object.entries(variables)
+              .map(([k, v]) => `  ${k} = ${v}`)
+              .join("\n") +
+            "\n"
+        );
         break;
-      case 'restart':
+      case "restart":
         handleStop();
         setTimeout(handleStart, 100);
         break;
       default:
-        setDebuggerOutput(prev => prev + `\nUnknown command: ${cmd}\n`);
+        setDebuggerOutput((prev) => prev + `\nUnknown command: ${cmd}\n`);
     }
   };
 
   const getLogIcon = (type) => {
     switch (type) {
-      case 'success':
+      case "success":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'error':
+      case "error":
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'warning':
+      case "warning":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       default:
         return <Clock className="h-4 w-4 text-blue-500" />;
@@ -203,24 +225,32 @@ function ExecutionMonitor() {
 
   const getLogColor = (type) => {
     switch (type) {
-      case 'success':
-        return 'text-green-700 bg-green-50 border-green-200';
-      case 'error':
-        return 'text-red-700 bg-red-50 border-red-200';
-      case 'warning':
-        return 'text-yellow-700 bg-yellow-50 border-yellow-200';
+      case "success":
+        return "text-green-700 bg-green-50 border-green-200";
+      case "error":
+        return "text-red-700 bg-red-50 border-red-200";
+      case "warning":
+        return "text-yellow-700 bg-yellow-50 border-yellow-200";
       default:
-        return 'text-blue-700 bg-blue-50 border-blue-200';
+        return "text-blue-700 bg-blue-50 border-blue-200";
     }
   };
 
   const getTotalSteps = () => {
-    return session?.program?.procedures?.reduce((total, proc) => total + proc.steps.length, 0) || 0;
+    return (
+      session?.program?.procedures?.reduce(
+        (total, proc) => total + proc.steps.length,
+        0
+      ) || 0
+    );
   };
 
   const getCurrentProcedure = () => {
     if (!session?.program?.procedures) return null;
-    return session.program.procedures[Math.floor(currentStep / 3)] || session.program.procedures[0];
+    return (
+      session.program.procedures[Math.floor(currentStep / 3)] ||
+      session.program.procedures[0]
+    );
   };
 
   const getCurrentStepInfo = () => {
@@ -236,12 +266,14 @@ function ExecutionMonitor() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Execution Monitor</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Execution Monitor
+            </h1>
             <p className="text-gray-600">Debug and control program execution</p>
           </div>
           <div className="flex items-center space-x-3">
             <div className="text-sm text-gray-600">
-              Session: {session?.id || 'None'}
+              Session: {session?.id || "None"}
             </div>
             <button className="p-2 text-gray-400 hover:text-gray-600">
               <Settings className="h-5 w-5" />
@@ -265,8 +297,12 @@ function ExecutionMonitor() {
               disabled={!isExecuting}
               className="flex items-center px-3 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50"
             >
-              {isPaused ? <Play className="h-4 w-4 mr-1" /> : <Pause className="h-4 w-4 mr-1" />}
-              {isPaused ? 'Continue' : 'Pause'}
+              {isPaused ? (
+                <Play className="h-4 w-4 mr-1" />
+              ) : (
+                <Pause className="h-4 w-4 mr-1" />
+              )}
+              {isPaused ? "Continue" : "Pause"}
             </button>
             <button
               onClick={handleStep}
@@ -300,7 +336,7 @@ function ExecutionMonitor() {
               Step {currentStep} of {getTotalSteps()}
             </div>
             <div className="w-32 bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-primary-600 h-2 rounded-full transition-all"
                 style={{ width: `${(currentStep / getTotalSteps()) * 100}%` }}
               />
@@ -315,10 +351,14 @@ function ExecutionMonitor() {
           <div className="p-6">
             {/* Current Step */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Current Step</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Current Step
+              </h3>
               {getCurrentStepInfo() ? (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="font-medium text-blue-900">{getCurrentStepInfo().description}</p>
+                  <p className="font-medium text-blue-900">
+                    {getCurrentStepInfo().description}
+                  </p>
                   <code className="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded mt-2 block">
                     {getCurrentStepInfo().command}
                   </code>
@@ -332,11 +372,18 @@ function ExecutionMonitor() {
 
             {/* Variables */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Variables</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Variables
+              </h3>
               <div className="space-y-2">
                 {Object.entries(variables).map(([key, value]) => (
-                  <div key={key} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <code className="text-sm font-medium text-gray-900">{key}</code>
+                  <div
+                    key={key}
+                    className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                  >
+                    <code className="text-sm font-medium text-gray-900">
+                      {key}
+                    </code>
                     <code className="text-sm text-gray-600">{value}</code>
                   </div>
                 ))}
@@ -345,7 +392,9 @@ function ExecutionMonitor() {
 
             {/* Debugger Commands */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Quick Commands</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Quick Commands
+              </h3>
               <div className="grid grid-cols-2 gap-2">
                 {debuggerCommands.map((cmd) => (
                   <button
@@ -373,13 +422,14 @@ function ExecutionMonitor() {
               <Download className="h-4 w-4" />
             </button>
           </div>
-          <div 
+          <div
             ref={terminalRef}
             className="flex-1 bg-gray-900 text-green-400 p-4 font-mono text-sm overflow-y-auto"
-            style={{ minHeight: '400px' }}
+            style={{ minHeight: "400px" }}
           >
             <div className="whitespace-pre-wrap">
-              {debuggerOutput || 'ENTRAN Execution Monitor\nType commands or use the control buttons above.\n\n'}
+              {debuggerOutput ||
+                "ENTRAN Execution Monitor\nType commands or use the control buttons above.\n\n"}
             </div>
           </div>
         </div>
@@ -387,7 +437,9 @@ function ExecutionMonitor() {
         {/* Right Panel - Execution Log */}
         <div className="w-80 border-l border-gray-200 bg-white overflow-y-auto">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Execution Log</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Execution Log
+            </h3>
             <div className="space-y-2">
               {executionLog.map((entry) => (
                 <div

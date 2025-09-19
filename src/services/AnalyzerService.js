@@ -1,4 +1,4 @@
-const { generateId } = require('../utils/helpers');
+const { generateId } = require("../utils/helpers");
 
 /**
  * AnalyzerService - Stage 3: Semantic Analysis Engine
@@ -25,13 +25,13 @@ class AnalyzerService {
         entity_extraction = true,
         dependency_analysis = true,
         memory_planning = true,
-        generate_graph = true
+        generate_graph = true,
       } = options;
 
       // 1. Program-level intent recognition
-      const programIntent = intent_recognition ? 
-        this.recognizeProgramIntent(program) : 
-        { intent: "unknown", confidence: 0.5 };
+      const programIntent = intent_recognition
+        ? this.recognizeProgramIntent(program)
+        : { intent: "unknown", confidence: 0.5 };
 
       // 2. Procedure-level analysis
       const procedureAnalysis = [];
@@ -39,30 +39,30 @@ class AnalyzerService {
         const procAnalysis = await this.analyzeProcedure(procedure, {
           intent_recognition,
           entity_extraction,
-          dependency_analysis
+          dependency_analysis,
         });
         procedureAnalysis.push(procAnalysis);
       }
 
       // 3. Global entity extraction
-      const globalEntities = entity_extraction ? 
-        this.extractGlobalEntities(program, procedureAnalysis) : 
-        [];
+      const globalEntities = entity_extraction
+        ? this.extractGlobalEntities(program, procedureAnalysis)
+        : [];
 
       // 4. Memory requirements planning
-      const memoryRequirements = memory_planning ? 
-        this.planMemoryRequirements(program, procedureAnalysis) : 
-        { variables: [], estimated_size: "unknown", persistence: "session" };
+      const memoryRequirements = memory_planning
+        ? this.planMemoryRequirements(program, procedureAnalysis)
+        : { variables: [], estimated_size: "unknown", persistence: "session" };
 
       // 5. Execution graph generation
-      const executionGraph = generate_graph ? 
-        this.generateExecutionGraph(program, procedureAnalysis) : 
-        { nodes: [], edges: [] };
+      const executionGraph = generate_graph
+        ? this.generateExecutionGraph(program, procedureAnalysis)
+        : { nodes: [], edges: [] };
 
       // 6. Cross-procedure relationship analysis
-      const relationships = dependency_analysis ? 
-        this.analyzeGlobalRelationships(procedureAnalysis) : 
-        [];
+      const relationships = dependency_analysis
+        ? this.analyzeGlobalRelationships(procedureAnalysis)
+        : [];
 
       const analysis = {
         program_intent: programIntent.intent,
@@ -73,8 +73,11 @@ class AnalyzerService {
         global_relationships: relationships,
         memory_requirements: memoryRequirements,
         execution_graph: executionGraph,
-        optimization_suggestions: this.generateOptimizationSuggestions(program, procedureAnalysis),
-        risk_assessment: this.assessRisks(program, procedureAnalysis)
+        optimization_suggestions: this.generateOptimizationSuggestions(
+          program,
+          procedureAnalysis
+        ),
+        risk_assessment: this.assessRisks(program, procedureAnalysis),
       };
 
       return {
@@ -84,18 +87,19 @@ class AnalyzerService {
           analyzed_at: new Date().toISOString(),
           procedures_analyzed: procedureAnalysis.length,
           entities_found: globalEntities.length,
-          relationships_found: relationships.length
-        }
+          relationships_found: relationships.length,
+        },
       };
-
     } catch (error) {
       return {
         success: false,
-        errors: [{
-          type: 'analysis_error',
-          message: `Semantic analysis failed: ${error.message}`,
-          details: error.stack
-        }]
+        errors: [
+          {
+            type: "analysis_error",
+            message: `Semantic analysis failed: ${error.message}`,
+            details: error.stack,
+          },
+        ],
       };
     }
   }
@@ -110,18 +114,24 @@ class AnalyzerService {
     const {
       intent_recognition = true,
       entity_extraction = true,
-      dependency_analysis = true
+      dependency_analysis = true,
     } = options;
 
     const procedureAnalysis = {
       id: procedure.id,
       name: procedure.name,
-      intent: intent_recognition ? this.recognizeProcedureIntent(procedure) : "unknown",
-      entities: entity_extraction ? this.extractProcedureEntities(procedure) : [],
-      relationships: dependency_analysis ? this.analyzeProcedureRelationships(procedure) : [],
+      intent: intent_recognition
+        ? this.recognizeProcedureIntent(procedure)
+        : "unknown",
+      entities: entity_extraction
+        ? this.extractProcedureEntities(procedure)
+        : [],
+      relationships: dependency_analysis
+        ? this.analyzeProcedureRelationships(procedure)
+        : [],
       steps: [],
       risk_level: this.assessProcedureRisk(procedure),
-      estimated_duration: this.estimateProcedureDuration(procedure)
+      estimated_duration: this.estimateProcedureDuration(procedure),
     };
 
     // Analyze each step
@@ -140,7 +150,7 @@ class AnalyzerService {
    */
   recognizeProgramIntent(program) {
     const toolCategories = this.categorizeTools(program.tools);
-    const procedureIntents = program.procedures.map(proc => 
+    const procedureIntents = program.procedures.map((proc) =>
       this.recognizeProcedureIntent(proc)
     );
 
@@ -152,7 +162,7 @@ class AnalyzerService {
       performance_tuning: 0,
       configuration_management: 0,
       data_recovery: 0,
-      general_maintenance: 0
+      general_maintenance: 0,
     };
 
     // Score based on tools used
@@ -161,16 +171,20 @@ class AnalyzerService {
     if (toolCategories.security > 0) intentScores.security_analysis += 0.2;
 
     // Score based on procedure intents
-    procedureIntents.forEach(intent => {
+    procedureIntents.forEach((intent) => {
       if (intentScores[intent]) {
         intentScores[intent] += 0.1;
       }
     });
 
     // Score based on program name and description
-    const programText = (program.name + ' ' + (program.description || '')).toLowerCase();
-    Object.keys(this.intentPatterns).forEach(intent => {
-      this.intentPatterns[intent].keywords.forEach(keyword => {
+    const programText = (
+      program.name +
+      " " +
+      (program.description || "")
+    ).toLowerCase();
+    Object.keys(this.intentPatterns).forEach((intent) => {
+      this.intentPatterns[intent].keywords.forEach((keyword) => {
         if (programText.includes(keyword)) {
           intentScores[intent] += 0.1;
         }
@@ -178,7 +192,7 @@ class AnalyzerService {
     });
 
     // Find highest scoring intent
-    const topIntent = Object.keys(intentScores).reduce((a, b) => 
+    const topIntent = Object.keys(intentScores).reduce((a, b) =>
       intentScores[a] > intentScores[b] ? a : b
     );
 
@@ -188,8 +202,8 @@ class AnalyzerService {
       details: {
         tool_categories: toolCategories,
         procedure_intents: procedureIntents,
-        scores: intentScores
-      }
+        scores: intentScores,
+      },
     };
   }
 
@@ -199,19 +213,23 @@ class AnalyzerService {
    * @returns {string} - Recognized intent
    */
   recognizeProcedureIntent(procedure) {
-    const text = (procedure.name + ' ' + procedure.steps.map(s => s.description || '').join(' ')).toLowerCase();
-    
-    let bestMatch = 'unknown';
+    const text = (
+      procedure.name +
+      " " +
+      procedure.steps.map((s) => s.description || "").join(" ")
+    ).toLowerCase();
+
+    let bestMatch = "unknown";
     let highestScore = 0;
 
-    Object.keys(this.intentPatterns).forEach(intent => {
+    Object.keys(this.intentPatterns).forEach((intent) => {
       let score = 0;
-      this.intentPatterns[intent].keywords.forEach(keyword => {
+      this.intentPatterns[intent].keywords.forEach((keyword) => {
         if (text.includes(keyword)) {
           score += 1;
         }
       });
-      
+
       if (score > highestScore) {
         highestScore = score;
         bestMatch = intent;
@@ -228,35 +246,38 @@ class AnalyzerService {
    */
   extractProcedureEntities(procedure) {
     const entities = [];
-    const text = procedure.name + ' ' + procedure.steps.map(s => s.description || '').join(' ');
+    const text =
+      procedure.name +
+      " " +
+      procedure.steps.map((s) => s.description || "").join(" ");
 
     // Extract different types of entities
-    Object.keys(this.entityPatterns).forEach(entityType => {
+    Object.keys(this.entityPatterns).forEach((entityType) => {
       const pattern = this.entityPatterns[entityType];
       const matches = text.match(pattern.regex) || [];
-      
-      matches.forEach(match => {
+
+      matches.forEach((match) => {
         entities.push({
           id: generateId(),
           type: entityType,
           value: match,
           confidence: pattern.confidence,
-          source: procedure.id
+          source: procedure.id,
         });
       });
     });
 
     // Extract entities from step parameters
-    procedure.steps.forEach(step => {
+    procedure.steps.forEach((step) => {
       if (step.parameters && step.parameters.args) {
-        step.parameters.args.forEach(arg => {
+        step.parameters.args.forEach((arg) => {
           if (this.isEntity(arg)) {
             entities.push({
               id: generateId(),
               type: this.classifyEntity(arg),
               value: arg,
               confidence: 0.8,
-              source: step.id
+              source: step.id,
             });
           }
         });
@@ -276,14 +297,14 @@ class AnalyzerService {
 
     for (let i = 0; i < procedure.steps.length; i++) {
       const step = procedure.steps[i];
-      
+
       // Sequential dependency
       if (i > 0) {
         relationships.push({
-          type: 'sequential',
+          type: "sequential",
           source: procedure.steps[i - 1].id,
           target: step.id,
-          description: 'Sequential execution dependency'
+          description: "Sequential execution dependency",
         });
       }
 
@@ -293,25 +314,25 @@ class AnalyzerService {
           const laterStep = procedure.steps[j];
           if (this.stepUsesVariable(laterStep, step.assign_to)) {
             relationships.push({
-              type: 'data_dependency',
+              type: "data_dependency",
               source: step.id,
               target: laterStep.id,
               variable: step.assign_to,
-              description: `Step depends on variable ${step.assign_to}`
+              description: `Step depends on variable ${step.assign_to}`,
             });
           }
         }
       }
 
       // Conditional dependency
-      if (step.type === 'conditional') {
+      if (step.type === "conditional") {
         if (step.true_branch) {
           relationships.push({
-            type: 'conditional',
+            type: "conditional",
             source: step.id,
-            target: step.true_branch.id || 'next_step',
-            condition: 'true',
-            description: 'Conditional execution path'
+            target: step.true_branch.id || "next_step",
+            condition: "true",
+            description: "Conditional execution path",
           });
         }
       }
@@ -335,7 +356,7 @@ class AnalyzerService {
       risk_factors: this.identifyStepRisks(step),
       dependencies: this.identifyStepDependencies(step, procedure),
       estimated_duration: this.estimateStepDuration(step),
-      rollback_possible: this.canRollback(step)
+      rollback_possible: this.canRollback(step),
     };
   }
 
@@ -347,19 +368,22 @@ class AnalyzerService {
    */
   extractGlobalEntities(program, procedureAnalysis) {
     const entityMap = new Map();
-    
+
     // Collect all entities from procedures
-    procedureAnalysis.forEach(proc => {
-      proc.entities.forEach(entity => {
+    procedureAnalysis.forEach((proc) => {
+      proc.entities.forEach((entity) => {
         const key = `${entity.type}:${entity.value}`;
         if (entityMap.has(key)) {
           entityMap.get(key).sources.push(entity.source);
-          entityMap.get(key).confidence = Math.max(entityMap.get(key).confidence, entity.confidence);
+          entityMap.get(key).confidence = Math.max(
+            entityMap.get(key).confidence,
+            entity.confidence
+          );
         } else {
           entityMap.set(key, {
             ...entity,
             sources: [entity.source],
-            scope: 'global'
+            scope: "global",
           });
         }
       });
@@ -379,16 +403,16 @@ class AnalyzerService {
     let estimatedSize = 0;
 
     // Collect all variables from procedure steps
-    procedureAnalysis.forEach(proc => {
-      proc.steps.forEach(stepAnalysis => {
-        stepAnalysis.entities.forEach(entity => {
-          if (entity.type === 'variable') {
+    procedureAnalysis.forEach((proc) => {
+      proc.steps.forEach((stepAnalysis) => {
+        stepAnalysis.entities.forEach((entity) => {
+          if (entity.type === "variable") {
             variables.push({
               name: entity.value,
               type: this.inferVariableType(entity),
               size: this.estimateVariableSize(entity),
               scope: proc.id,
-              source: stepAnalysis.id
+              source: stepAnalysis.id,
             });
             estimatedSize += this.estimateVariableSize(entity);
           }
@@ -397,13 +421,13 @@ class AnalyzerService {
     });
 
     // Add global memory from program
-    Object.keys(program.global_memory || {}).forEach(key => {
+    Object.keys(program.global_memory || {}).forEach((key) => {
       variables.push({
         name: key,
-        type: 'global',
+        type: "global",
         size: 100, // Default size
-        scope: 'global',
-        source: 'program'
+        scope: "global",
+        source: "program",
       });
       estimatedSize += 100;
     });
@@ -411,8 +435,8 @@ class AnalyzerService {
     return {
       variables: variables,
       estimated_size: this.formatSize(estimatedSize),
-      persistence: 'session',
-      peak_usage: this.estimatePeakMemoryUsage(variables)
+      persistence: "session",
+      peak_usage: this.estimatePeakMemoryUsage(variables),
     };
   }
 
@@ -427,36 +451,36 @@ class AnalyzerService {
     const edges = [];
 
     // Add procedure nodes
-    procedureAnalysis.forEach(proc => {
+    procedureAnalysis.forEach((proc) => {
       nodes.push({
         id: proc.id,
-        type: 'procedure',
+        type: "procedure",
         label: proc.name,
         intent: proc.intent,
-        risk_level: proc.risk_level
+        risk_level: proc.risk_level,
       });
 
       // Add step nodes
-      proc.steps.forEach(step => {
+      proc.steps.forEach((step) => {
         nodes.push({
           id: step.id,
-          type: 'step',
+          type: "step",
           label: step.type,
           parent: proc.id,
           intent: step.intent,
-          risk_factors: step.risk_factors
+          risk_factors: step.risk_factors,
         });
       });
     });
 
     // Add edges from relationships
-    procedureAnalysis.forEach(proc => {
-      proc.relationships.forEach(rel => {
+    procedureAnalysis.forEach((proc) => {
+      proc.relationships.forEach((rel) => {
         edges.push({
           source: rel.source,
           target: rel.target,
           type: rel.type,
-          label: rel.description
+          label: rel.description,
         });
       });
     });
@@ -466,15 +490,15 @@ class AnalyzerService {
       edges.push({
         source: program.execution_order[i - 1],
         target: program.execution_order[i],
-        type: 'execution_order',
-        label: 'Sequential execution'
+        type: "execution_order",
+        label: "Sequential execution",
       });
     }
 
     return {
       nodes: nodes,
       edges: edges,
-      layout: 'hierarchical'
+      layout: "hierarchical",
     };
   }
 
@@ -488,8 +512,11 @@ class AnalyzerService {
     let annotated = markdown;
 
     // Annotate entities
-    analysis.global_entities.forEach(entity => {
-      const pattern = new RegExp(`\\b${this.escapeRegex(entity.value)}\\b`, 'g');
+    analysis.global_entities.forEach((entity) => {
+      const pattern = new RegExp(
+        `\\b${this.escapeRegex(entity.value)}\\b`,
+        "g"
+      );
       const annotation = `<span class="${entity.type}" title="${entity.type}: ${entity.confidence}">${entity.value}</span>`;
       annotated = annotated.replace(pattern, annotation);
     });
@@ -516,8 +543,8 @@ class AnalyzerService {
    */
   extractEntities(program) {
     const entities = [];
-    
-    program.procedures.forEach(procedure => {
+
+    program.procedures.forEach((procedure) => {
       const procEntities = this.extractProcedureEntities(procedure);
       entities.push(...procEntities);
     });
@@ -546,19 +573,29 @@ class AnalyzerService {
       system: 0,
       file: 0,
       text: 0,
-      security: 0
+      security: 0,
     };
 
     const toolCategories = {
-      network: ['ip', 'ping', 'nslookup', 'dig', 'curl', 'wget', 'netstat', 'ss', 'iptables'],
-      system: ['systemctl', 'ps', 'top', 'htop', 'free', 'df', 'lsof', 'mount'],
-      file: ['ls', 'cat', 'less', 'head', 'tail', 'find', 'chmod', 'chown'],
-      text: ['grep', 'awk', 'sed', 'sort', 'uniq', 'wc'],
-      security: ['sudo', 'ssh', 'scp', 'gpg', 'openssl']
+      network: [
+        "ip",
+        "ping",
+        "nslookup",
+        "dig",
+        "curl",
+        "wget",
+        "netstat",
+        "ss",
+        "iptables",
+      ],
+      system: ["systemctl", "ps", "top", "htop", "free", "df", "lsof", "mount"],
+      file: ["ls", "cat", "less", "head", "tail", "find", "chmod", "chown"],
+      text: ["grep", "awk", "sed", "sort", "uniq", "wc"],
+      security: ["sudo", "ssh", "scp", "gpg", "openssl"],
     };
 
-    tools.forEach(tool => {
-      Object.keys(toolCategories).forEach(category => {
+    tools.forEach((tool) => {
+      Object.keys(toolCategories).forEach((category) => {
         if (toolCategories[category].includes(tool)) {
           categories[category]++;
         }
@@ -576,8 +613,10 @@ class AnalyzerService {
    */
   stepUsesVariable(step, variable) {
     const stepText = JSON.stringify(step).toLowerCase();
-    return stepText.includes(`$${variable}`) || 
-           stepText.includes(variable.toLowerCase());
+    return (
+      stepText.includes(`$${variable}`) ||
+      stepText.includes(variable.toLowerCase())
+    );
   }
 
   /**
@@ -586,21 +625,21 @@ class AnalyzerService {
    * @returns {string} - Step intent
    */
   recognizeStepIntent(step) {
-    const stepText = (step.description || '').toLowerCase();
-    
-    if (step.type === 'command') {
-      if (step.tool === 'ip') return 'network_diagnosis';
-      if (step.tool === 'ping') return 'connectivity_test';
-      if (step.tool === 'nslookup') return 'dns_resolution';
-      if (step.tool === 'systemctl') return 'service_management';
-      return 'command_execution';
+    const stepText = (step.description || "").toLowerCase();
+
+    if (step.type === "command") {
+      if (step.tool === "ip") return "network_diagnosis";
+      if (step.tool === "ping") return "connectivity_test";
+      if (step.tool === "nslookup") return "dns_resolution";
+      if (step.tool === "systemctl") return "service_management";
+      return "command_execution";
     }
-    
-    if (step.type === 'conditional') return 'condition_check';
-    if (step.type === 'assignment') return 'data_storage';
-    if (step.type === 'choice') return 'user_interaction';
-    
-    return 'unknown';
+
+    if (step.type === "conditional") return "condition_check";
+    if (step.type === "assignment") return "data_storage";
+    if (step.type === "choice") return "user_interaction";
+
+    return "unknown";
   }
 
   /**
@@ -610,20 +649,20 @@ class AnalyzerService {
    */
   extractStepEntities(step) {
     const entities = [];
-    const text = step.description || '';
+    const text = step.description || "";
 
     // Extract entities using patterns
-    Object.keys(this.entityPatterns).forEach(entityType => {
+    Object.keys(this.entityPatterns).forEach((entityType) => {
       const pattern = this.entityPatterns[entityType];
       const matches = text.match(pattern.regex) || [];
-      
-      matches.forEach(match => {
+
+      matches.forEach((match) => {
         entities.push({
           id: generateId(),
           type: entityType,
           value: match,
           confidence: pattern.confidence,
-          source: step.id
+          source: step.id,
         });
       });
     });
@@ -639,33 +678,36 @@ class AnalyzerService {
   identifyStepRisks(step) {
     const risks = [];
 
-    if (step.type === 'command') {
+    if (step.type === "command") {
       // Check for potentially dangerous commands
-      const dangerousCommands = ['rm', 'del', 'format', 'fdisk', 'mkfs'];
-      if (dangerousCommands.some(cmd => step.command.includes(cmd))) {
+      const dangerousCommands = ["rm", "del", "format", "fdisk", "mkfs"];
+      if (dangerousCommands.some((cmd) => step.command.includes(cmd))) {
         risks.push({
-          type: 'data_loss',
-          level: 'high',
-          description: 'Command may cause data loss'
+          type: "data_loss",
+          level: "high",
+          description: "Command may cause data loss",
         });
       }
 
       // Check for network-affecting commands
-      const networkCommands = ['iptables', 'ip route', 'ifconfig'];
-      if (networkCommands.some(cmd => step.command.includes(cmd))) {
+      const networkCommands = ["iptables", "ip route", "ifconfig"];
+      if (networkCommands.some((cmd) => step.command.includes(cmd))) {
         risks.push({
-          type: 'network_disruption',
-          level: 'medium',
-          description: 'Command may affect network connectivity'
+          type: "network_disruption",
+          level: "medium",
+          description: "Command may affect network connectivity",
         });
       }
 
       // Check for service-affecting commands
-      if (step.command.includes('systemctl stop') || step.command.includes('service stop')) {
+      if (
+        step.command.includes("systemctl stop") ||
+        step.command.includes("service stop")
+      ) {
         risks.push({
-          type: 'service_disruption',
-          level: 'medium',
-          description: 'Command will stop a service'
+          type: "service_disruption",
+          level: "medium",
+          description: "Command will stop a service",
         });
       }
     }
@@ -685,32 +727,32 @@ class AnalyzerService {
     // Check for tool dependencies
     if (step.tool) {
       dependencies.push({
-        type: 'tool',
+        type: "tool",
         value: step.tool,
-        description: `Requires ${step.tool} tool to be available`
+        description: `Requires ${step.tool} tool to be available`,
       });
     }
 
     // Check for variable dependencies
     if (step.description) {
       const variableMatches = step.description.match(/\$(\w+)/g) || [];
-      variableMatches.forEach(match => {
+      variableMatches.forEach((match) => {
         dependencies.push({
-          type: 'variable',
+          type: "variable",
           value: match.substring(1),
-          description: `Requires variable ${match}`
+          description: `Requires variable ${match}`,
         });
       });
     }
 
     // Check for file dependencies
     if (step.parameters && step.parameters.args) {
-      step.parameters.args.forEach(arg => {
-        if (arg.startsWith('/') || arg.includes('.')) {
+      step.parameters.args.forEach((arg) => {
+        if (arg.startsWith("/") || arg.includes(".")) {
           dependencies.push({
-            type: 'file',
+            type: "file",
             value: arg,
-            description: `Requires access to file ${arg}`
+            description: `Requires access to file ${arg}`,
           });
         }
       });
@@ -731,15 +773,15 @@ class AnalyzerService {
       assignment: 0.5,
       choice: 10, // User interaction time
       analysis: 1,
-      note: 0.1
+      note: 0.1,
     };
 
     let duration = baseDurations[step.type] || 1;
 
     // Adjust based on specific tools
-    if (step.tool === 'ping') duration = 5;
-    if (step.tool === 'nslookup') duration = 3;
-    if (step.tool === 'curl') duration = 4;
+    if (step.tool === "ping") duration = 5;
+    if (step.tool === "nslookup") duration = 3;
+    if (step.tool === "curl") duration = 4;
 
     return duration;
   }
@@ -750,11 +792,11 @@ class AnalyzerService {
    * @returns {boolean} - True if rollback is possible
    */
   canRollback(step) {
-    if (step.type !== 'command') return true;
+    if (step.type !== "command") return true;
 
     // Commands that can't be easily rolled back
-    const irreversibleCommands = ['rm', 'del', 'format', 'mkfs', 'dd'];
-    return !irreversibleCommands.some(cmd => step.command.includes(cmd));
+    const irreversibleCommands = ["rm", "del", "format", "mkfs", "dd"];
+    return !irreversibleCommands.some((cmd) => step.command.includes(cmd));
   }
 
   /**
@@ -763,13 +805,19 @@ class AnalyzerService {
    * @returns {string} - Risk level
    */
   assessProcedureRisk(procedure) {
-    const stepRisks = procedure.steps.map(step => this.identifyStepRisks(step));
-    const highRisks = stepRisks.flat().filter(risk => risk.level === 'high').length;
-    const mediumRisks = stepRisks.flat().filter(risk => risk.level === 'medium').length;
+    const stepRisks = procedure.steps.map((step) =>
+      this.identifyStepRisks(step)
+    );
+    const highRisks = stepRisks
+      .flat()
+      .filter((risk) => risk.level === "high").length;
+    const mediumRisks = stepRisks
+      .flat()
+      .filter((risk) => risk.level === "medium").length;
 
-    if (highRisks > 0) return 'high';
-    if (mediumRisks > 2) return 'medium';
-    return 'low';
+    if (highRisks > 0) return "high";
+    if (mediumRisks > 2) return "medium";
+    return "low";
   }
 
   /**
@@ -778,7 +826,10 @@ class AnalyzerService {
    * @returns {number} - Estimated duration in seconds
    */
   estimateProcedureDuration(procedure) {
-    return procedure.steps.reduce((total, step) => total + this.estimateStepDuration(step), 0);
+    return procedure.steps.reduce(
+      (total, step) => total + this.estimateStepDuration(step),
+      0
+    );
   }
 
   /**
@@ -788,7 +839,7 @@ class AnalyzerService {
    */
   isEntity(value) {
     // Check if value matches any entity pattern
-    return Object.values(this.entityPatterns).some(pattern => 
+    return Object.values(this.entityPatterns).some((pattern) =>
       pattern.regex.test(value)
     );
   }
@@ -804,7 +855,7 @@ class AnalyzerService {
         return type;
       }
     }
-    return 'unknown';
+    return "unknown";
   }
 
   /**
@@ -821,17 +872,19 @@ class AnalyzerService {
         const proc1 = procedureAnalysis[i];
         const proc2 = procedureAnalysis[j];
 
-        const sharedEntities = proc1.entities.filter(e1 =>
-          proc2.entities.some(e2 => e1.value === e2.value && e1.type === e2.type)
+        const sharedEntities = proc1.entities.filter((e1) =>
+          proc2.entities.some(
+            (e2) => e1.value === e2.value && e1.type === e2.type
+          )
         );
 
         if (sharedEntities.length > 0) {
           relationships.push({
-            type: 'shared_entities',
+            type: "shared_entities",
             source: proc1.id,
             target: proc2.id,
-            entities: sharedEntities.map(e => e.value),
-            description: `Procedures share ${sharedEntities.length} entities`
+            entities: sharedEntities.map((e) => e.value),
+            description: `Procedures share ${sharedEntities.length} entities`,
           });
         }
       }
@@ -850,33 +903,34 @@ class AnalyzerService {
     const suggestions = [];
 
     // Check for duplicate steps
-    const allSteps = procedureAnalysis.flatMap(proc => proc.steps);
-    const stepCommands = allSteps.filter(step => step.type === 'command')
-                                 .map(step => step.command);
-    const duplicates = stepCommands.filter((cmd, index) => 
-      stepCommands.indexOf(cmd) !== index
+    const allSteps = procedureAnalysis.flatMap((proc) => proc.steps);
+    const stepCommands = allSteps
+      .filter((step) => step.type === "command")
+      .map((step) => step.command);
+    const duplicates = stepCommands.filter(
+      (cmd, index) => stepCommands.indexOf(cmd) !== index
     );
 
     if (duplicates.length > 0) {
       suggestions.push({
-        type: 'duplicate_elimination',
-        severity: 'medium',
+        type: "duplicate_elimination",
+        severity: "medium",
         description: `Found ${duplicates.length} duplicate commands that could be consolidated`,
-        affected_steps: duplicates
+        affected_steps: duplicates,
       });
     }
 
     // Check for parallelizable procedures
-    const independentProcedures = procedureAnalysis.filter(proc => 
-      proc.relationships.length === 0
+    const independentProcedures = procedureAnalysis.filter(
+      (proc) => proc.relationships.length === 0
     );
 
     if (independentProcedures.length > 1) {
       suggestions.push({
-        type: 'parallelization',
-        severity: 'low',
+        type: "parallelization",
+        severity: "low",
         description: `${independentProcedures.length} procedures could be run in parallel`,
-        affected_procedures: independentProcedures.map(p => p.id)
+        affected_procedures: independentProcedures.map((p) => p.id),
       });
     }
 
@@ -890,25 +944,25 @@ class AnalyzerService {
    * @returns {Object} - Risk assessment
    */
   assessRisks(program, procedureAnalysis) {
-    const allRisks = procedureAnalysis.flatMap(proc => 
-      proc.steps.flatMap(step => step.risk_factors || [])
+    const allRisks = procedureAnalysis.flatMap((proc) =>
+      proc.steps.flatMap((step) => step.risk_factors || [])
     );
 
     const riskCounts = {
-      high: allRisks.filter(r => r.level === 'high').length,
-      medium: allRisks.filter(r => r.level === 'medium').length,
-      low: allRisks.filter(r => r.level === 'low').length
+      high: allRisks.filter((r) => r.level === "high").length,
+      medium: allRisks.filter((r) => r.level === "medium").length,
+      low: allRisks.filter((r) => r.level === "low").length,
     };
 
-    let overallRisk = 'low';
-    if (riskCounts.high > 0) overallRisk = 'high';
-    else if (riskCounts.medium > 3) overallRisk = 'medium';
+    let overallRisk = "low";
+    if (riskCounts.high > 0) overallRisk = "high";
+    else if (riskCounts.medium > 3) overallRisk = "medium";
 
     return {
       overall_risk: overallRisk,
       risk_counts: riskCounts,
-      critical_risks: allRisks.filter(r => r.level === 'high'),
-      recommendations: this.generateRiskRecommendations(allRisks)
+      critical_risks: allRisks.filter((r) => r.level === "high"),
+      recommendations: this.generateRiskRecommendations(allRisks),
     };
   }
 
@@ -920,21 +974,23 @@ class AnalyzerService {
   generateRiskRecommendations(risks) {
     const recommendations = [];
 
-    const dataLossRisks = risks.filter(r => r.type === 'data_loss');
+    const dataLossRisks = risks.filter((r) => r.type === "data_loss");
     if (dataLossRisks.length > 0) {
       recommendations.push({
-        type: 'backup',
-        priority: 'high',
-        description: 'Create backup before executing commands that may cause data loss'
+        type: "backup",
+        priority: "high",
+        description:
+          "Create backup before executing commands that may cause data loss",
       });
     }
 
-    const networkRisks = risks.filter(r => r.type === 'network_disruption');
+    const networkRisks = risks.filter((r) => r.type === "network_disruption");
     if (networkRisks.length > 0) {
       recommendations.push({
-        type: 'network_safety',
-        priority: 'medium',
-        description: 'Ensure alternative access method before modifying network configuration'
+        type: "network_safety",
+        priority: "medium",
+        description:
+          "Ensure alternative access method before modifying network configuration",
       });
     }
 
@@ -947,11 +1003,11 @@ class AnalyzerService {
    * @returns {string} - Variable type
    */
   inferVariableType(entity) {
-    if (entity.value.match(/^\d+$/)) return 'integer';
-    if (entity.value.match(/^\d+\.\d+$/)) return 'float';
-    if (entity.value.match(/^(true|false)$/i)) return 'boolean';
-    if (entity.value.startsWith('/')) return 'path';
-    return 'string';
+    if (entity.value.match(/^\d+$/)) return "integer";
+    if (entity.value.match(/^\d+\.\d+$/)) return "float";
+    if (entity.value.match(/^(true|false)$/i)) return "boolean";
+    if (entity.value.startsWith("/")) return "path";
+    return "string";
   }
 
   /**
@@ -966,7 +1022,7 @@ class AnalyzerService {
       float: 8,
       boolean: 1,
       path: entity.value.length * 2,
-      string: entity.value.length * 2
+      string: entity.value.length * 2,
     };
     return sizemap[type] || 50;
   }
@@ -1003,7 +1059,7 @@ class AnalyzerService {
    * @returns {string} - Escaped string
    */
   escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   // ==================== INITIALIZATION METHODS ====================
@@ -1025,7 +1081,7 @@ class AnalyzerService {
       file_path: "#009688", // Teal
       ip_address: "#E91E63", // Pink
       service_name: "#673AB7", // Deep Purple
-      variable: "#FF5722" // Deep Orange
+      variable: "#FF5722", // Deep Orange
     };
   }
 
@@ -1036,33 +1092,86 @@ class AnalyzerService {
   initializeIntentPatterns() {
     return {
       network_troubleshooting: {
-        keywords: ['network', 'connectivity', 'connection', 'ping', 'dns', 'route', 'interface', 'ip'],
-        confidence: 0.8
+        keywords: [
+          "network",
+          "connectivity",
+          "connection",
+          "ping",
+          "dns",
+          "route",
+          "interface",
+          "ip",
+        ],
+        confidence: 0.8,
       },
       system_diagnostics: {
-        keywords: ['system', 'performance', 'memory', 'cpu', 'disk', 'process', 'status', 'health'],
-        confidence: 0.8
+        keywords: [
+          "system",
+          "performance",
+          "memory",
+          "cpu",
+          "disk",
+          "process",
+          "status",
+          "health",
+        ],
+        confidence: 0.8,
       },
       security_analysis: {
-        keywords: ['security', 'vulnerability', 'access', 'permission', 'firewall', 'authentication'],
-        confidence: 0.8
+        keywords: [
+          "security",
+          "vulnerability",
+          "access",
+          "permission",
+          "firewall",
+          "authentication",
+        ],
+        confidence: 0.8,
       },
       performance_tuning: {
-        keywords: ['performance', 'optimization', 'tuning', 'speed', 'latency', 'throughput'],
-        confidence: 0.7
+        keywords: [
+          "performance",
+          "optimization",
+          "tuning",
+          "speed",
+          "latency",
+          "throughput",
+        ],
+        confidence: 0.7,
       },
       configuration_management: {
-        keywords: ['config', 'configuration', 'setup', 'install', 'deploy', 'settings'],
-        confidence: 0.7
+        keywords: [
+          "config",
+          "configuration",
+          "setup",
+          "install",
+          "deploy",
+          "settings",
+        ],
+        confidence: 0.7,
       },
       data_recovery: {
-        keywords: ['recovery', 'restore', 'backup', 'lost', 'corrupt', 'repair'],
-        confidence: 0.8
+        keywords: [
+          "recovery",
+          "restore",
+          "backup",
+          "lost",
+          "corrupt",
+          "repair",
+        ],
+        confidence: 0.8,
       },
       general_maintenance: {
-        keywords: ['maintenance', 'cleanup', 'update', 'patch', 'upgrade', 'housekeeping'],
-        confidence: 0.6
-      }
+        keywords: [
+          "maintenance",
+          "cleanup",
+          "update",
+          "patch",
+          "upgrade",
+          "housekeeping",
+        ],
+        confidence: 0.6,
+      },
     };
   }
 
@@ -1074,44 +1183,44 @@ class AnalyzerService {
     return {
       ip_address: {
         regex: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
-        confidence: 0.95
+        confidence: 0.95,
       },
       file_path: {
         regex: /(?:\/[\w.-]+)+\/?|\w+\.[\w]+/g,
-        confidence: 0.8
+        confidence: 0.8,
       },
       service_name: {
         regex: /\b(?:apache2|nginx|mysql|postgresql|redis|docker|ssh|ftp)\b/gi,
-        confidence: 0.9
+        confidence: 0.9,
       },
       interface_name: {
         regex: /\b(?:eth0|eth1|wlan0|lo|docker0|br-\w+)\b/g,
-        confidence: 0.9
+        confidence: 0.9,
       },
       domain_name: {
         regex: /\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b/g,
-        confidence: 0.8
+        confidence: 0.8,
       },
       port_number: {
         regex: /\b(?:port\s+)?(\d{1,5})\b/gi,
-        confidence: 0.7
+        confidence: 0.7,
       },
       variable: {
         regex: /\$(\w+)|\b[A-Z_]+\b/g,
-        confidence: 0.6
+        confidence: 0.6,
       },
       user_name: {
         regex: /\b(?:user|username):\s*(\w+)/gi,
-        confidence: 0.8
+        confidence: 0.8,
       },
       process_id: {
         regex: /\bpid\s*:?\s*(\d+)/gi,
-        confidence: 0.9
+        confidence: 0.9,
       },
       memory_size: {
         regex: /\b\d+(?:\.\d+)?\s*(?:KB|MB|GB|TB)\b/gi,
-        confidence: 0.9
-      }
+        confidence: 0.9,
+      },
     };
   }
 
@@ -1122,29 +1231,29 @@ class AnalyzerService {
   initializeRelationshipTypes() {
     return {
       sequential: {
-        description: 'Steps must execute in order',
-        strength: 'strong'
+        description: "Steps must execute in order",
+        strength: "strong",
       },
       data_dependency: {
-        description: 'Step depends on output from another step',
-        strength: 'strong'
+        description: "Step depends on output from another step",
+        strength: "strong",
       },
       conditional: {
-        description: 'Step execution depends on condition',
-        strength: 'medium'
+        description: "Step execution depends on condition",
+        strength: "medium",
       },
       shared_entities: {
-        description: 'Procedures work with same entities',
-        strength: 'weak'
+        description: "Procedures work with same entities",
+        strength: "weak",
       },
       tool_dependency: {
-        description: 'Step requires specific tool',
-        strength: 'strong'
+        description: "Step requires specific tool",
+        strength: "strong",
       },
       file_dependency: {
-        description: 'Step requires file access',
-        strength: 'medium'
-      }
+        description: "Step requires file access",
+        strength: "medium",
+      },
     };
   }
 }
