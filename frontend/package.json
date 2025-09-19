@@ -1,0 +1,52 @@
+{
+  "name": "entran-frontend",
+  "version": "1.0.0",
+  "description": "ENTRAN Frontend - English as Programming Language Interface",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.3.0",
+    "react-scripts": "5.0.1",
+    "axios": "^1.4.0",
+    "lucide-react": "^0.263.1",
+    "react-ace": "^10.1.0",
+    "ace-builds": "^1.21.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "react-markdown": "^8.0.7",
+    "remark-gfm": "^3.0.1",
+    "classnames": "^2.3.2",
+    "react-hot-toast": "^2.4.1",
+    "recharts": "^2.7.2",
+    "d3": "^7.8.5",
+    "react-flow-renderer": "^10.3.17"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:3001"
+}
