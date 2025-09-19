@@ -14,16 +14,19 @@ function App() {
       <div className="App min-h-screen bg-gray-50">
         <Routes>
           <Route path="/demo" element={<DemoPage />} />
-          <Route path="/*" element={
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/editor" element={<DocumentEditor />} />
-                <Route path="/stages" element={<StageViewer />} />
-                <Route path="/execution" element={<ExecutionMonitor />} />
-              </Routes>
-            </Layout>
-          } />
+          <Route
+            path="/*"
+            element={
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/editor" element={<DocumentEditor />} />
+                  <Route path="/stages" element={<StageViewer />} />
+                  <Route path="/execution" element={<ExecutionMonitor />} />
+                </Routes>
+              </Layout>
+            }
+          />
         </Routes>
       </div>
     </Router>

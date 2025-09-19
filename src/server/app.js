@@ -10,6 +10,7 @@ const lexerRoutes = require("./routes/lexer");
 const transpilerRoutes = require("./routes/transpiler");
 const analyzerRoutes = require("./routes/analyzer");
 const executionRoutes = require("./routes/execution");
+const optimizerRoutes = require("./routes/optimizer");
 
 // Import middleware
 const { errorHandler } = require("./middleware/errorHandler");
@@ -77,6 +78,7 @@ app.get("/health", (req, res) => {
 });
 
 // API Routes
+app.use("/api/optimizer", optimizerRoutes);
 app.use("/api/lexer", lexerRoutes);
 app.use("/api/transpiler", transpilerRoutes);
 app.use("/api/analyzer", analyzerRoutes);

@@ -1,15 +1,15 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Code2, 
-  FileText, 
-  Layers, 
-  Play, 
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Code2,
+  FileText,
+  Layers,
+  Play,
   Home,
   Github,
   Settings,
-  Zap
-} from 'lucide-react';
+  Zap,
+} from "lucide-react";
 
 function Layout({ children }) {
   const location = useLocation();
